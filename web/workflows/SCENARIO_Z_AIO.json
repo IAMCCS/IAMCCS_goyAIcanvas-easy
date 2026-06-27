@@ -1,0 +1,590 @@
+{
+  "id": "9ae6082b-c7f4-433c-9971-7a8f65a3ea65",
+  "revision": 0,
+  "last_node_id": 48,
+  "last_link_id": 48,
+  "nodes": [
+    {
+      "id": 9,
+      "type": "SaveImage",
+      "pos": [
+        1070,
+        220
+      ],
+      "size": [
+        780,
+        660
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 45
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.64",
+        "Node name for S&R": "SaveImage",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65,
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.6",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "z-image"
+      ]
+    },
+    {
+      "id": 40,
+      "type": "EmptySD3LatentImage",
+      "pos": [
+        448.5136970907732,
+        972.6456471164435
+      ],
+      "size": [
+        260,
+        110
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "slot_index": 0,
+          "links": [
+            43
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.64",
+        "Node name for S&R": "EmptySD3LatentImage",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65,
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.6",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        2048,
+        2048,
+        1
+      ]
+    },
+    {
+      "id": 41,
+      "type": "ConditioningZeroOut",
+      "pos": [
+        205.52038700140312,
+        742.5964147998254
+      ],
+      "size": [
+        204.134765625,
+        26
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "conditioning",
+          "type": "CONDITIONING",
+          "link": 36
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            42
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.73",
+        "Node name for S&R": "ConditioningZeroOut",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65,
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.6",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 42,
+      "type": "VAEDecode",
+      "pos": [
+        785.5203870014034,
+        282.59641479982537
+      ],
+      "size": [
+        210,
+        46
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "samples",
+          "type": "LATENT",
+          "link": 38
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 48
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "slot_index": 0,
+          "links": [
+            45
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.64",
+        "Node name for S&R": "VAEDecode",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65,
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.6",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 43,
+      "type": "KSampler",
+      "pos": [
+        445.52038700140326,
+        392.59641479982537
+      ],
+      "size": [
+        315,
+        474
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 40
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 41
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 42
+        },
+        {
+          "name": "latent_image",
+          "type": "LATENT",
+          "link": 43
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "slot_index": 0,
+          "links": [
+            38
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.64",
+        "Node name for S&R": "KSampler",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65,
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.6",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        871530004651036,
+        "randomize",
+        4,
+        1,
+        "res_multistep",
+        "simple",
+        1
+      ]
+    },
+    {
+      "id": 45,
+      "type": "ModelSamplingAuraFlow",
+      "pos": [
+        435.1693751307682,
+        190.23361787068256
+      ],
+      "size": [
+        310,
+        60
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 46
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "slot_index": 0,
+          "links": [
+            40
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.64",
+        "Node name for S&R": "ModelSamplingAuraFlow",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65,
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.6",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        3
+      ]
+    },
+    {
+      "id": 44,
+      "type": "CLIPTextEncode",
+      "pos": [
+        -12.639873826544672,
+        57.9684831681466
+      ],
+      "size": [
+        410,
+        370
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 47
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            36,
+            41
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.73",
+        "Node name for S&R": "CLIPTextEncode",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65,
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.6",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "A magazine cover photography of a smiling energetic 16-year-old Japanese girl with layered short hair, pushing a vintage bicycle in front of a retro mint green vending machine. Cheerful expression, lively posture, summer vibe. She wears a white T-shirt and denim overalls. Green grapes and a water cup in the bike basket. Background of messy telephone poles and nostalgic Japanese shop signs. Side sunlight creating a golden halo on her hair. Fujifilm Pro 400H style, grainy film texture, low saturation, slightly overexposed, cinematic composition, unique camera angle. Fashion editorial style, 8K resolution.\n\nMagazine cover layout with visible text:\nLarge title “SUMMER” at the top.\nSmall cover text: “Youth & Freedom”, “Tokyo Street Issue”, “Vol. 24 | August 2025”.\nBarcode at the bottom corner."
+      ]
+    },
+    {
+      "id": 48,
+      "type": "CheckpointLoaderSimple",
+      "pos": [
+        -513.6305781937755,
+        491.4100650838199
+      ],
+      "size": [
+        270,
+        98
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            46
+          ]
+        },
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            47
+          ]
+        },
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            48
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.12.3",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {}
+        },
+        "Node name for S&R": "CheckpointLoaderSimple"
+      },
+      "widgets_values": [
+        ""
+      ]
+    }
+  ],
+  "links": [
+    [
+      36,
+      44,
+      0,
+      41,
+      0,
+      "CONDITIONING"
+    ],
+    [
+      38,
+      43,
+      0,
+      42,
+      0,
+      "LATENT"
+    ],
+    [
+      40,
+      45,
+      0,
+      43,
+      0,
+      "MODEL"
+    ],
+    [
+      41,
+      44,
+      0,
+      43,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      42,
+      41,
+      0,
+      43,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      43,
+      40,
+      0,
+      43,
+      3,
+      "LATENT"
+    ],
+    [
+      45,
+      42,
+      0,
+      9,
+      0,
+      "IMAGE"
+    ],
+    [
+      46,
+      48,
+      0,
+      45,
+      0,
+      "MODEL"
+    ],
+    [
+      47,
+      48,
+      1,
+      44,
+      0,
+      "CLIP"
+    ],
+    [
+      48,
+      48,
+      2,
+      42,
+      1,
+      "VAE"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.7160933619619884,
+      "offset": [
+        1004.0346026249873,
+        466.5683043022268
+      ]
+    },
+    "frontendVersion": "1.37.11",
+    "VHS_latentpreview": true,
+    "VHS_latentpreviewrate": 0,
+    "VHS_MetadataImage": true,
+    "VHS_KeepIntermediate": true,
+    "workflowRendererVersion": "LG",
+    "iamccs_annotations_multi": {
+      "version": 2,
+      "graphs": {
+        "00000000-0000-0000-0000-000000000000": {
+          "version": 2,
+          "enabled": false,
+          "color": "#ff4444",
+          "width": 7,
+          "opacity": 1,
+          "eraser": false,
+          "constantScreen": false,
+          "dashed": false,
+          "hidden": false,
+          "penOnly": false,
+          "hiDPIx2": false,
+          "pinMode": false,
+          "tool": "draw",
+          "selectMode": "rect",
+          "transformMode": "fixed",
+          "widthDraw": 7,
+          "widthErase": 48,
+          "opacityDraw": 1,
+          "opacityErase": 1,
+          "textFontFamily": "Arial",
+          "textFontSize": 28,
+          "textColor": "#111111",
+          "textFontWeight": "normal",
+          "textFontStyle": "normal",
+          "textUnderline": false,
+          "paths": [],
+          "layers": [
+            {
+              "name": "Layer 1",
+              "visible": true,
+              "locked": false,
+              "paths": [],
+              "style": {
+                "color": "#ff4444",
+                "dashed": false,
+                "widthDraw": 7,
+                "widthErase": 48,
+                "opacityDraw": 1,
+                "opacityErase": 1
+              }
+            }
+          ],
+          "currentLayerIdx": 0,
+          "stickers": [],
+          "stickerStyle": {
+            "frameColor": "#ffffff",
+            "paddingPx": 10,
+            "borderWidthPx": 2,
+            "shadow": true,
+            "shadowStrength": 12
+          }
+        }
+      }
+    },
+    "ue_links": []
+  },
+  "version": 0.4
+}

@@ -1,0 +1,268 @@
+{
+  "IAMGC_EDIT:001": {
+    "inputs": {
+      "unet_name": "",
+      "weight_dtype": "default"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "Easy Edit Flux/Klein UNET"
+    }
+  },
+  "IAMGC_EDIT:002": {
+    "inputs": {
+      "shift": 3,
+      "model": [
+        "IAMGC_EDIT:001",
+        0
+      ]
+    },
+    "class_type": "ModelSamplingAuraFlow",
+    "_meta": {
+      "title": "Easy Edit Flux/Klein Sampling"
+    }
+  },
+  "IAMGC_EDIT:003": {
+    "inputs": {
+      "clip_name": "",
+      "type": "flux2",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": {
+      "title": "Easy Edit CLIP"
+    }
+  },
+  "IAMGC_EDIT:004": {
+    "inputs": {
+      "vae_name": ""
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "Easy Edit VAE"
+    }
+  },
+  "IAMGC_EDIT:005": {
+    "inputs": {
+      "image": "placeholder.png",
+      "upload": "image"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Easy Edit Source Image"
+    }
+  },
+  "IAMGC_EDIT:006": {
+    "inputs": {
+      "image": [
+        "IAMGC_EDIT:005",
+        0
+      ],
+      "width": 1024,
+      "height": 1024,
+      "upscale_method": "lanczos",
+      "keep_proportion": "stretch",
+      "pad_color": "0, 0, 0",
+      "crop_position": "center",
+      "divisible_by": 2,
+      "device": "cpu"
+    },
+    "class_type": "ImageResizeKJv2",
+    "_meta": {
+      "title": "Easy Edit Resize To Canvas"
+    }
+  },
+  "IAMGC_EDIT:007": {
+    "inputs": {
+      "pixels": [
+        "IAMGC_EDIT:006",
+        0
+      ],
+      "vae": [
+        "IAMGC_EDIT:004",
+        0
+      ]
+    },
+    "class_type": "VAEEncode",
+    "_meta": {
+      "title": "Easy Edit Reference Encode"
+    }
+  },
+  "IAMGC_EDIT:008": {
+    "inputs": {
+      "text": "",
+      "clip": [
+        "IAMGC_EDIT:003",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "Easy Edit Positive Prompt"
+    }
+  },
+  "IAMGC_EDIT:009": {
+    "inputs": {
+      "text": "",
+      "clip": [
+        "IAMGC_EDIT:003",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "Easy Edit Negative Prompt"
+    }
+  },
+  "IAMGC_EDIT:010": {
+    "inputs": {
+      "conditioning": [
+        "IAMGC_EDIT:008",
+        0
+      ],
+      "latent": [
+        "IAMGC_EDIT:007",
+        0
+      ]
+    },
+    "class_type": "ReferenceLatent",
+    "_meta": {
+      "title": "Easy Edit Positive Reference"
+    }
+  },
+  "IAMGC_EDIT:011": {
+    "inputs": {
+      "conditioning": [
+        "IAMGC_EDIT:009",
+        0
+      ],
+      "latent": [
+        "IAMGC_EDIT:007",
+        0
+      ]
+    },
+    "class_type": "ReferenceLatent",
+    "_meta": {
+      "title": "Easy Edit Negative Reference"
+    }
+  },
+  "IAMGC_EDIT:012": {
+    "inputs": {
+      "model": [
+        "IAMGC_EDIT:002",
+        0
+      ],
+      "positive": [
+        "IAMGC_EDIT:010",
+        0
+      ],
+      "negative": [
+        "IAMGC_EDIT:011",
+        0
+      ],
+      "cfg": 1
+    },
+    "class_type": "CFGGuider",
+    "_meta": {
+      "title": "Easy Edit Guider"
+    }
+  },
+  "IAMGC_EDIT:013": {
+    "inputs": {
+      "noise_seed": 0
+    },
+    "class_type": "RandomNoise",
+    "_meta": {
+      "title": "Easy Edit Noise"
+    }
+  },
+  "IAMGC_EDIT:014": {
+    "inputs": {
+      "sampler_name": "res_2s"
+    },
+    "class_type": "KSamplerSelect",
+    "_meta": {
+      "title": "Easy Edit Sampler"
+    }
+  },
+  "IAMGC_EDIT:015": {
+    "inputs": {
+      "steps": 8,
+      "width": 1024,
+      "height": 1024
+    },
+    "class_type": "Flux2Scheduler",
+    "_meta": {
+      "title": "Easy Edit Flux.2 Scheduler"
+    }
+  },
+  "IAMGC_EDIT:016": {
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "batch_size": 1
+    },
+    "class_type": "EmptyFlux2LatentImage",
+    "_meta": {
+      "title": "Easy Edit Target Latent"
+    }
+  },
+  "IAMGC_EDIT:017": {
+    "inputs": {
+      "noise": [
+        "IAMGC_EDIT:013",
+        0
+      ],
+      "guider": [
+        "IAMGC_EDIT:012",
+        0
+      ],
+      "sampler": [
+        "IAMGC_EDIT:014",
+        0
+      ],
+      "sigmas": [
+        "IAMGC_EDIT:015",
+        0
+      ],
+      "latent_image": [
+        "IAMGC_EDIT:016",
+        0
+      ]
+    },
+    "class_type": "SamplerCustomAdvanced",
+    "_meta": {
+      "title": "Easy Edit SamplerCustomAdvanced"
+    }
+  },
+  "IAMGC_EDIT:018": {
+    "inputs": {
+      "samples": [
+        "IAMGC_EDIT:017",
+        0
+      ],
+      "vae": [
+        "IAMGC_EDIT:004",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "Easy Edit Decode"
+    }
+  },
+  "IAMGC_EDIT:019": {
+    "inputs": {
+      "filename_prefix": "goya_output/goyai_easy_edit",
+      "images": [
+        "IAMGC_EDIT:018",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Easy Edit Save"
+    }
+  }
+}
+

@@ -1,0 +1,294 @@
+{
+  "IAMGC_INP:001": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "flux-2-klein-9b-fp8.safetensors",
+      "weight_dtype": "default"
+    },
+    "_meta": {
+      "title": "IAMCCS GoyAIcanvas UNETLoader"
+    }
+  },
+  "IAMGC_INP:002": {
+    "class_type": "FluxKVCache",
+    "inputs": {
+      "model": [
+        "IAMGC_INP:001",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "IAMCCS GoyAIcanvas FluxKVCache"
+    }
+  },
+  "IAMGC_INP:003": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen_3_8b_fp8mixed.safetensors",
+      "type": "flux2",
+      "device": "default"
+    },
+    "_meta": {
+      "title": "IAMCCS GoyAIcanvas CLIPLoader"
+    }
+  },
+  "IAMGC_INP:004": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "flux2-vae.safetensors"
+    },
+    "_meta": {
+      "title": "IAMCCS GoyAIcanvas VAELoader"
+    }
+  },
+  "IAMGC_INP:005": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": [
+        "IAMGC_INP:003",
+        0
+      ],
+      "text": ""
+    },
+    "_meta": {
+      "title": "IAMCCS GoyAIcanvas CLIPTextEncode"
+    }
+  },
+  "IAMGC_INP:006": {
+    "class_type": "ConditioningZeroOut",
+    "inputs": {
+      "conditioning": [
+        "IAMGC_INP:005",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "IAMCCS GoyAIcanvas ConditioningZeroOut"
+    }
+  },
+  "IAMGC_INP:007": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "example.png",
+      "upload": "image"
+    },
+    "_meta": {
+      "title": "IAMCCS GoyAIcanvas LoadImage"
+    }
+  },
+  "IAMGC_INP:008": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "example_mask.png",
+      "upload": "image"
+    },
+    "_meta": {
+      "title": "IAMCCS GoyAIcanvas LoadImage"
+    }
+  },
+  "IAMGC_INP:009": {
+    "class_type": "ImageToMask",
+    "inputs": {
+      "image": [
+        "IAMGC_INP:008",
+        0
+      ],
+      "channel": "red"
+    },
+    "_meta": {
+      "title": "IAMCCS GoyAIcanvas ImageToMask"
+    }
+  },
+  "IAMGC_INP:010": {
+    "class_type": "InpaintCropImproved",
+    "inputs": {
+      "image": [
+        "IAMGC_INP:007",
+        0
+      ],
+      "mask": [
+        "IAMGC_INP:009",
+        0
+      ],
+      "downscale_algorithm": "bilinear",
+      "upscale_algorithm": "bicubic",
+      "preresize": false,
+      "preresize_mode": "ensure minimum resolution",
+      "preresize_min_width": 1024,
+      "preresize_min_height": 1024,
+      "preresize_max_width": 16384,
+      "preresize_max_height": 16384,
+      "mask_fill_holes": true,
+      "mask_expand_pixels": 0,
+      "mask_invert": false,
+      "mask_blend_pixels": 32,
+      "mask_hipass_filter": 0.1,
+      "extend_for_outpainting": false,
+      "extend_up_factor": 1,
+      "extend_down_factor": 1,
+      "extend_left_factor": 1,
+      "extend_right_factor": 1,
+      "context_from_mask_extend_factor": 1.5,
+      "output_resize_to_target_size": true,
+      "output_target_width": 1024,
+      "output_target_height": 1024,
+      "output_padding": "32",
+      "device_mode": "gpu (much faster)"
+    },
+    "_meta": {
+      "title": "IAMCCS GoyAIcanvas InpaintCropImproved"
+    }
+  },
+  "IAMGC_INP:011": {
+    "class_type": "VAEEncode",
+    "inputs": {
+      "pixels": [
+        "IAMGC_INP:010",
+        1
+      ],
+      "vae": [
+        "IAMGC_INP:004",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "IAMCCS GoyAIcanvas VAEEncode"
+    }
+  },
+  "IAMGC_INP:012": {
+    "class_type": "ReferenceLatent",
+    "inputs": {
+      "conditioning": [
+        "IAMGC_INP:005",
+        0
+      ],
+      "latent": [
+        "IAMGC_INP:011",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "IAMCCS GoyAIcanvas ReferenceLatent"
+    }
+  },
+  "IAMGC_INP:013": {
+    "class_type": "ReferenceLatent",
+    "inputs": {
+      "conditioning": [
+        "IAMGC_INP:006",
+        0
+      ],
+      "latent": [
+        "IAMGC_INP:011",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "IAMCCS GoyAIcanvas ReferenceLatent"
+    }
+  },
+  "IAMGC_INP:014": {
+    "class_type": "InpaintModelConditioning",
+    "inputs": {
+      "positive": [
+        "IAMGC_INP:012",
+        0
+      ],
+      "negative": [
+        "IAMGC_INP:013",
+        0
+      ],
+      "vae": [
+        "IAMGC_INP:004",
+        0
+      ],
+      "pixels": [
+        "IAMGC_INP:010",
+        1
+      ],
+      "mask": [
+        "IAMGC_INP:010",
+        2
+      ],
+      "noise_mask": true
+    },
+    "_meta": {
+      "title": "IAMCCS GoyAIcanvas InpaintModelConditioning"
+    }
+  },
+  "IAMGC_INP:015": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": [
+        "IAMGC_INP:002",
+        0
+      ],
+      "positive": [
+        "IAMGC_INP:014",
+        0
+      ],
+      "negative": [
+        "IAMGC_INP:014",
+        1
+      ],
+      "latent_image": [
+        "IAMGC_INP:014",
+        2
+      ],
+      "seed": 0,
+      "steps": 4,
+      "cfg": 1,
+      "sampler_name": "er_sde",
+      "scheduler": "simple",
+      "denoise": 1
+    },
+    "_meta": {
+      "title": "IAMCCS GoyAIcanvas KSampler"
+    }
+  },
+  "IAMGC_INP:016": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": [
+        "IAMGC_INP:015",
+        0
+      ],
+      "vae": [
+        "IAMGC_INP:004",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "IAMCCS GoyAIcanvas VAEDecode"
+    }
+  },
+  "IAMGC_INP:017": {
+    "class_type": "InpaintStitchImproved",
+    "inputs": {
+      "stitcher": [
+        "IAMGC_INP:010",
+        0
+      ],
+      "inpainted_image": [
+        "IAMGC_INP:016",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "IAMCCS GoyAIcanvas InpaintStitchImproved"
+    }
+  },
+  "IAMGC_INP:018": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": [
+        "IAMGC_INP:017",
+        0
+      ],
+      "filename_prefix": "goya_output/goyai_easy_inpaint"
+    },
+    "_meta": {
+      "title": "IAMCCS GoyAIcanvas SaveImage"
+    }
+  }
+}

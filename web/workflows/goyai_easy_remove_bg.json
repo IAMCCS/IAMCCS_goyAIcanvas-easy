@@ -1,0 +1,78 @@
+{
+  "IAMGC_RMBG:001": {
+    "class_type": "LoadBackgroundRemovalModel",
+    "inputs": {
+      "bg_removal_name": "birefnet.safetensors"
+    },
+    "_meta": {
+      "title": "IAMCCS GoyAIcanvas LoadBackgroundRemovalModel"
+    }
+  },
+  "IAMGC_RMBG:002": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "example.png",
+      "upload": "image"
+    },
+    "_meta": {
+      "title": "IAMCCS GoyAIcanvas LoadImage"
+    }
+  },
+  "IAMGC_RMBG:003": {
+    "class_type": "RemoveBackground",
+    "inputs": {
+      "image": [
+        "IAMGC_RMBG:002",
+        0
+      ],
+      "bg_removal_model": [
+        "IAMGC_RMBG:001",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "IAMCCS GoyAIcanvas RemoveBackground"
+    }
+  },
+  "IAMGC_RMBG:004": {
+    "class_type": "InvertMask",
+    "inputs": {
+      "mask": [
+        "IAMGC_RMBG:003",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "IAMCCS GoyAIcanvas InvertMask"
+    }
+  },
+  "IAMGC_RMBG:005": {
+    "class_type": "JoinImageWithAlpha",
+    "inputs": {
+      "image": [
+        "IAMGC_RMBG:002",
+        0
+      ],
+      "alpha": [
+        "IAMGC_RMBG:004",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "IAMCCS GoyAIcanvas JoinImageWithAlpha"
+    }
+  },
+  "IAMGC_RMBG:006": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": [
+        "IAMGC_RMBG:005",
+        0
+      ],
+      "filename_prefix": "goya_output/goyai_easy_remove_bg"
+    },
+    "_meta": {
+      "title": "IAMCCS GoyAIcanvas SaveImage"
+    }
+  }
+}

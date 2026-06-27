@@ -1,0 +1,12 @@
+goyAIcanvas EASY
+Copyright 2026 IAMCCS
+
+Project and development updates:
+https://patreon.com/IAMCCS
+
+This package is licensed under the Apache License 2.0.
+Redistributions, forks, and derivative works must preserve this NOTICE file,
+the license text, and clear attribution to IAMCCS / patreon.com/IAMCCS.
+
+Model files, checkpoints, LoRAs, VAEs, CLIP/text encoders, and other third-party
+assets are not included and remain governed by their own licenses.
