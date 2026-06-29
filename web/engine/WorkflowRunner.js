@@ -1,4 +1,4 @@
-﻿import Constants from "../utils/Constants.js";
+import Constants from "../utils/Constants.js";
 
 // Test switch: execution source for Flux/Z during quality comparison
 // Values: "python" (use backend runners only) | "json" (use JSON graph via /prompt)
@@ -261,7 +261,7 @@ export default class WorkflowRunner {
                 }
                 const preview = payload?.extra?.prompt_preview || payload?.prompt_preview || "";
                 if (typeof preview === "string" && preview.trim().length > 0) {
-                    console.log("[FRONTEND PROMPT] bridge:state:pulled → prompt_preview detected (chars)", preview.length, "text:", preview.substring(0, 200));
+                    console.log("[FRONTEND PROMPT] bridge:state:pulled ? prompt_preview detected (chars)", preview.length, "text:", preview.substring(0, 200));
                     this._emitZ2PromptPreview(preview, { force: true });
                 }
             } catch (e) {
@@ -276,7 +276,7 @@ export default class WorkflowRunner {
         this.z2QwenLastDescription = "";
         this.z2QwenModel = "Qwen3-VL-4B-Instruct";
         this.z2QwenQuant = "4-bit (VRAM-friendly)";
-        this.z2QwenPreset = "🖼️ Detailed Description";
+        this.z2QwenPreset = "??? Detailed Description";
         this.z2QwenCustomPrompt = "";
         this.z2QwenAttention = "auto";
         this.z2QwenKeepLoaded = true;
@@ -468,7 +468,7 @@ export default class WorkflowRunner {
                 const payload = this.buildPayload();
                 const immediate = !!(opts && typeof opts === "object" && opts.immediate);
                 this.bridge.pushState(payload, { immediate });
-                console.log("[WorkflowRunner] 🔄 Pushed state on params change", {
+                console.log("[WorkflowRunner] ?? Pushed state on params change", {
                     seed: this.seed, steps: this.steps, cfg: this.cfg,
                     sampler: this.sampler, scheduler: this.scheduler,
                     upscale: {
@@ -585,7 +585,7 @@ export default class WorkflowRunner {
             if (Number.isFinite(params.seamFixPadding)) this.seamFixPadding = params.seamFixPadding;
             if (typeof params.forceUniformTiles === "boolean") this.forceUniformTiles = params.forceUniformTiles;
             if (typeof params.tiledDecode === "boolean") this.tiledDecode = params.tiledDecode;
-            console.log("[WorkflowRunner] ✅ Parameters restored: seed=%d steps=%d cfg=%.1f sampler=%s lora1=%s flux_shift=[%.2f, %.2f] upscale=%s", 
+            console.log("[WorkflowRunner] ? Parameters restored: seed=%d steps=%d cfg=%.1f sampler=%s lora1=%s flux_shift=[%.2f, %.2f] upscale=%s", 
                 this.seed, this.steps, this.cfg, this.sampler, this.lora1Model || "(none)", this.fluxMaxShift, this.fluxBaseShift, this.upscaleEnabled ? "enabled" : "disabled");
         });
     }
@@ -614,7 +614,7 @@ export default class WorkflowRunner {
         // 3) Only route to UP when engine explicitly set to 'upscale' AND flag enabled
         const upEnabled = !!(payload?.extra?.upscale_enabled);
         if (engine === "upscale" && upEnabled) {
-            console.log("[Route] 📌 Scenario UP (engine=upscale & upscale_enabled=true)");
+            console.log("[Route] ?? Scenario UP (engine=upscale & upscale_enabled=true)");
             return "scenario_up";
         }
 
@@ -743,7 +743,7 @@ export default class WorkflowRunner {
             qwen_vl_enabled: this.qwenEnabled !== false,
             qwen_model: this.z2QwenModel || "Qwen3-VL-4B-Instruct",
             qwen_quantization: this.z2QwenQuant || "4-bit (VRAM-friendly)",
-            qwen_preset_prompt: this.z2QwenPreset || "🖼️ Detailed Description",
+            qwen_preset_prompt: this.z2QwenPreset || "??? Detailed Description",
             qwen_custom_prompt: this.z2QwenCustomPrompt || "",
             qwen_attention_mode: this.z2QwenAttention || "auto",
             qwen_keep_loaded: this.z2QwenKeepLoaded !== false,
@@ -840,7 +840,7 @@ export default class WorkflowRunner {
             qwen_vl_enabled: this.qwenEnabled !== false,
             qwen_model: this.z2QwenModel || "Qwen3-VL-4B-Instruct",
             qwen_quantization: this.z2QwenQuant || "4-bit (VRAM-friendly)",
-            qwen_preset_prompt: this.z2QwenPreset || "🖼️ Detailed Description",
+            qwen_preset_prompt: this.z2QwenPreset || "??? Detailed Description",
             qwen_custom_prompt: this.z2QwenCustomPrompt || "",
             qwen_attention_mode: this.z2QwenAttention || "auto",
             qwen_keep_loaded: this.z2QwenKeepLoaded !== false,
@@ -1197,7 +1197,7 @@ export default class WorkflowRunner {
     /**
      * DISPATCHER: Determine active scenario from UI panel state.
      * Follows ARCH GENERALE DISPATCHING pattern:
-     * UI Panel → scenario key → Router Priority 1 → SCENARIO_REGISTRY
+     * UI Panel ? scenario key ? Router Priority 1 ? SCENARIO_REGISTRY
     /** Return the generation-time canvas dimensions (easy or advanced based on source) */
     getGenerationDimensions() {
         if (this._generationSource === 'easy') {
@@ -1224,38 +1224,38 @@ export default class WorkflowRunner {
             // Allow explicit FL2 mode override from UI (keeps existing auto resolver intact)
             const forced = String(this.fl2PanelScenario || "").toLowerCase();
             if (forced === "fl2-i" || forced === "fl2-s" || forced === "fl2-t" || forced === "fl2-o") {
-                console.log("[DISPATCHER] → Returning", JSON.stringify(forced), "for FL2 panel (explicit override)");
+                console.log("[DISPATCHER] ? Returning", JSON.stringify(forced), "for FL2 panel (explicit override)");
                 return forced;
             }
             const resolved = this._resolveFl2PanelScenario();
-            console.log("[DISPATCHER] → Returning", JSON.stringify(resolved), "for FL2 panel (activePanel priority)");
+            console.log("[DISPATCHER] ? Returning", JSON.stringify(resolved), "for FL2 panel (activePanel priority)");
             return resolved;
         }
         if (panel === "z2") {
-            console.log("[DISPATCHER] → Returning 'z2' for Z-Image IMG2IMG (activePanel priority)");
+            console.log("[DISPATCHER] ? Returning 'z2' for Z-Image IMG2IMG (activePanel priority)");
             return "z2";      // Z-Image IMG2IMG panel
         }
         if (panel === "z3") {
-            console.log("[DISPATCHER] → Returning 'z3' for Z-Image ControlNet (activePanel priority)");
+            console.log("[DISPATCHER] ? Returning 'z3' for Z-Image ControlNet (activePanel priority)");
             return "z3";      // Z-Image ControlNet panel
         }
         if (panel === "video") {
-            console.log("[DISPATCHER] → Returning 'video' for Video Timeline (activePanel priority)");
+            console.log("[DISPATCHER] ? Returning 'video' for Video Timeline (activePanel priority)");
             return "video";   // Video Timeline panel
         }
         if (panel === "lil") {
-            console.log("[DISPATCHER] → Returning 'lil' for LI-L (activePanel priority)");
+            console.log("[DISPATCHER] ? Returning 'lil' for LI-L (activePanel priority)");
             return "lil";
         }
         
         const engine = (this.engine || "qwen").toLowerCase();
         console.log("[DISPATCHER] Checking engine=", engine, "activePanel=", panel || "none");
         if (engine === "flux") {
-            console.log("[DISPATCHER] → Returning '1c' for Flux");
+            console.log("[DISPATCHER] ? Returning '1c' for Flux");
             return "1c";  // Flux SRPO panel
         }
         if (engine === "z") {
-            console.log("[DISPATCHER] → Returning 'z' for Z-Image (txt2img default)");
+            console.log("[DISPATCHER] ? Returning 'z' for Z-Image (txt2img default)");
             return "z";      // Z-Image panel (txt2img)
         }
 
@@ -1281,14 +1281,14 @@ export default class WorkflowRunner {
                 return hasExplicitMask || hasMaskStack || hasPaintBitmap;
             });
             if (hasScenario2Candidate) {
-                console.log("[DISPATCHER] → Returning '2' for Scenario 2 (regional inpaint detected)");
+                console.log("[DISPATCHER] ? Returning '2' for Scenario 2 (regional inpaint detected)");
                 return "2";
             }
         } catch (e) {
             // fallthrough to baseline
         }
         
-        console.log("[DISPATCHER] → Returning '1' (default Qwen baseline)");
+        console.log("[DISPATCHER] ? Returning '1' (default Qwen baseline)");
         return "1"; // Default: Qwen baseline
     }
 
@@ -1299,7 +1299,7 @@ export default class WorkflowRunner {
      */
     async executeScenarioLIL(params = {}) {
         try {
-            console.warn('[DISPATCHER] ═══ executeScenarioLIL CALLED ═══');
+            console.warn('[DISPATCHER] --- executeScenarioLIL CALLED ---');
             console.log('[DISPATCHER] executeScenarioLIL: Setting activePanel=lil, engine=lil');
             // LIL requires a source image.
             // If the caller didn't provide one (common when LIL is triggered via activePanel/main Generate),
@@ -1559,13 +1559,13 @@ export default class WorkflowRunner {
     /**
      * Build a ComfyUI-API JSON prompt graph for the full LTX-2 I2V pipeline:
      *
-     * CheckpointLoaderSimple ─┬─ MODEL ──▶ [IAMCCS_LTX2_LoRAStack] ──▶ IAMCCS_ModelWithLoRA_LTX2
-     *                         ├─ CLIP  ──▶ CLIPTextEncode (pos / neg)
-     *                         └─ VAE   ──▶ VAEDecode
+     * CheckpointLoaderSimple --- MODEL --? [IAMCCS_LTX2_LoRAStack] --? IAMCCS_ModelWithLoRA_LTX2
+     *                         +- CLIP  --? CLIPTextEncode (pos / neg)
+     *                         +- VAE   --? VAEDecode
      *
-     * CLIPTextEncode (pos+neg) ──▶ LTXVConditioning ──▶ (conditioning)
-     * source_image ──▶ LoadImage ──▶ LTXVImgToVideo ──▶ (latent)
-     * model ──▶ ModelSamplingLTXV + LTXVScheduler ──▶ SamplerCustomAdvanced ──▶ VAEDecode ──▶ VHS_VideoCombine
+     * CLIPTextEncode (pos+neg) --? LTXVConditioning --? (conditioning)
+     * source_image --? LoadImage --? LTXVImgToVideo --? (latent)
+     * model --? ModelSamplingLTXV + LTXVScheduler --? SamplerCustomAdvanced --? VAEDecode --? VHS_VideoCombine
      *
      * @param {Object} params – sphere params from i2v_lil node
      * @returns {Object} ComfyUI prompt graph
@@ -1892,8 +1892,8 @@ export default class WorkflowRunner {
         // FL2 behaves like a panel dispatcher (exclusive selection).
         // Rules (per spec):
         // - Selecting FL2 excludes other scenarios
-        // - If there are multiple layers AND a mask on loaded image → FL2-I
-        // - Else if an image is loaded AND user uses global prompt → FL2-S
+        // - If there are multiple layers AND a mask on loaded image ? FL2-I
+        // - Else if an image is loaded AND user uses global prompt ? FL2-S
         // - Outpaint condition intentionally deferred
         try {
             const layers = (this.layerManager?.getLayers?.() || []).filter((l) => !!l && l.visible !== false);
@@ -2412,13 +2412,13 @@ export default class WorkflowRunner {
             result.extra.scenario_override = "up";
         }
 
-        // 🔥 CRITICAL FIX: Force SDultimate model overrides to prevent backend from receiving empty/invalid values
+        // ?? CRITICAL FIX: Force SDultimate model overrides to prevent backend from receiving empty/invalid values
         if (this.engine === "upscale" && this.upscalePanelSubmode === "sdultimate") {
-            console.log("[DISPATCHER] 🔥 SDultimate mode detected - forcing model overrides");
+            console.log("[DISPATCHER] ?? SDultimate mode detected - forcing model overrides");
             result.extra.clip1_model_override = this.upscaleClip1Model || "";
             result.extra.vae_model_override = this.upscaleVaeModel || "";
             result.extra.unet_model_override = this.upscaleUnetModel || "";
-            console.log("[DISPATCHER] 🔥 Forced overrides:", {
+            console.log("[DISPATCHER] ?? Forced overrides:", {
                 clip1: result.extra.clip1_model_override,
                 vae: result.extra.vae_model_override,
                 unet: result.extra.unet_model_override,
@@ -2638,7 +2638,7 @@ export default class WorkflowRunner {
         console.log("[DISPATCHER] Pre-queue full payload.extra keys=", Object.keys(payload.extra));
         try {
             await this.bridge.pushState(payload, { immediate: true });
-            console.log("[WorkflowRunner] ✅ State pushed before queue", payload.extra);
+            console.log("[WorkflowRunner] ? State pushed before queue", payload.extra);
         } catch (e) {
             console.warn("[WorkflowRunner] pushState failed before queue", e);
         }
@@ -2685,7 +2685,7 @@ export default class WorkflowRunner {
             }
 
             const activeScenario = String(this.getActiveScenario() || "").toLowerCase();
-            console.log("[DISPATCHER] executeActiveScenario →", activeScenario);
+            console.log("[DISPATCHER] executeActiveScenario ?", activeScenario);
 
             if (activeScenario === "lil") {
                 await this.executeScenarioLIL(params);
@@ -2917,17 +2917,17 @@ export default class WorkflowRunner {
             }
         }
 
+        if (mode === "inpaint") {
+            this._applyNegativeTextEncodeFallback(patched, negative);
+        }
+
         return { prompt: patched, meta: { seed, steps, cfg, sampler, scheduler, denoise, width, height, mode } };
     }
 
     _buildEasyReferenceI2IPrompt(params = {}, assets = {}, mode = "i2i") {
         const normalizedMode = "i2i";
         const modeLabel = "Image to Image";
-        const subject = "source image";
-        const basePrompt = String(params.prompt ?? this._getGlobalPromptText?.() ?? "").trim();
-        const promptText = basePrompt
-            ? `${basePrompt}. Follow the ${subject} very closely. Preserve composition, silhouette, pose, layout, crop, colors, and main shapes.`
-            : `Transform the ${subject} while preserving composition, silhouette, pose, layout, crop, colors, and main shapes.`;
+        const promptText = String(params.prompt ?? this._getGlobalPromptText?.() ?? "").trim();
         const negativeText = String(params.negativePrompt ?? this._getGlobalNegativePromptText?.() ?? "");
         const model = String(params.generationModel || params.modelChoice || this.unetModel || "").trim();
         const vae = String(params.vaeModel || this.vaeModel || "").trim();
@@ -2947,7 +2947,7 @@ export default class WorkflowRunner {
         if (!model) throw new Error(`Easy ${modeLabel}: choose an installed Flux/Klein model in Settings.`);
         if (!vae) throw new Error(`Easy ${modeLabel}: choose an installed VAE in Settings.`);
         if (!clip) throw new Error(`Easy ${modeLabel}: choose an installed CLIP/text encoder in Settings.`);
-        if (!sourceImage) throw new Error(`Easy ${modeLabel}: ${subject} is missing.`);
+        if (!sourceImage) throw new Error(`Easy ${modeLabel}: source image is missing.`);
 
         const prompt = {};
         let nextId = 1;
@@ -3087,8 +3087,7 @@ export default class WorkflowRunner {
     }
 
     _buildEasyFl9bOutpaintPrompt(params = {}, assets = {}) {
-        const promptText = String(params.prompt ?? this._getGlobalPromptText?.() ?? "").trim()
-            || "Fill in the black space to complete this image, maintaining the look and overall style of the image.";
+        const promptText = String(params.prompt ?? this._getGlobalPromptText?.() ?? "").trim();
         const negativeText = String(params.negativePrompt ?? this._getGlobalNegativePromptText?.() ?? "");
         const model = String(params.generationModel || params.modelChoice || this.unetModel || "").trim();
         const vae = String(params.vaeModel || this.vaeModel || "").trim();
@@ -3357,12 +3356,17 @@ export default class WorkflowRunner {
         const timeoutMs = Math.max(60 * 1000, Number(options.timeoutMs ?? 30 * 60 * 1000) || 30 * 60 * 1000);
         const timeoutAt = Date.now() + timeoutMs;
         let lastStatus = "";
-        this.eventBus.emit("workflow:phase", { index: 3, count: 4, phase: "Waiting for result", phaseProgress: 50 });
-        this._emitEasyHistoryProgress(null, 15);
+        let lastWaitingTick = 0;
+        this.eventBus.emit("workflow:phase", { index: 3, count: 4, phase: "Waiting for ComfyUI", phaseProgress: 50 });
 
         while (Date.now() < timeoutAt) {
             if (!this._easyResultPollIsCurrent(serial)) return [];
             try {
+                const now = Date.now();
+                if (now - lastWaitingTick > 5000) {
+                    lastWaitingTick = now;
+                    this.eventBus.emit("status:message", `Waiting for ComfyUI history: ${id}`);
+                }
                 const response = await fetch(`/history/${encodeURIComponent(id)}`, { cache: "no-store" });
                 if (response?.ok) {
                     const data = await response.json().catch(() => ({}));
@@ -3373,7 +3377,7 @@ export default class WorkflowRunner {
                             lastStatus = statusText;
                             this.eventBus.emit("status:message", statusText);
                         }
-                        this._emitEasyHistoryProgress(entry, 35);
+                        this._emitEasyHistoryProgress(entry);
                         const images = this._extractEasyHistoryImages(entry);
                         if (images.length) {
                             const first = images[0];
@@ -3761,6 +3765,39 @@ export default class WorkflowRunner {
         return prompt;
     }
 
+    _applyNegativeTextEncodeFallback(prompt = {}, negativeText = "") {
+        const negative = String(negativeText ?? this._getGlobalNegativePromptText?.() ?? "");
+        if (!negative.trim()) return false;
+        const entries = Object.entries(prompt || {});
+        const clipEncodeEntries = entries.filter(([_id, node]) => String(node?.class_type || "") === "CLIPTextEncode");
+        if (!clipEncodeEntries.length) return false;
+        let changed = false;
+        for (const [nodeId, node] of entries) {
+            if (String(node?.class_type || "") !== "ConditioningZeroOut") continue;
+            const conditioning = node?.inputs?.conditioning;
+            const sourceId = Array.isArray(conditioning) ? String(conditioning[0]) : "";
+            const positiveNode = prompt[sourceId] || clipEncodeEntries[0]?.[1];
+            const clipInput = positiveNode?.inputs?.clip;
+            if (!Array.isArray(clipInput)) continue;
+            prompt[nodeId] = {
+                class_type: "CLIPTextEncode",
+                inputs: {
+                    clip: [...clipInput],
+                    text: negative,
+                },
+                _meta: {
+                    ...(node?._meta || {}),
+                    title: "IAMCCS GoyAIcanvas Negative CLIPTextEncode",
+                },
+            };
+            changed = true;
+        }
+        if (changed) {
+            this.eventBus?.emit?.("status:message", "Negative prompt linked");
+        }
+        return changed;
+    }
+
     _isDecorativeUiWorkflowNode(node) {
         const type = String(node?.type || node?.class_type || '').trim().toLowerCase();
         if (!type) return false;
@@ -3822,6 +3859,7 @@ export default class WorkflowRunner {
                 ...params,
                 filenamePrefix: `${EASY_OUTPUT_PREFIX}/goyai_easy_z`,
             });
+            this._applyNegativeTextEncodeFallback(prompt, params.negativePrompt);
             const queued = await this._queueEasyPrompt(prompt, {
                 intentMode: "t2i",
                 scenarioKey: "easy-z",
@@ -3877,6 +3915,7 @@ export default class WorkflowRunner {
                 seedvr2DitModel: params.seedvr2DitModel || this.seedvr2DitModel || params.generationModel || params.modelChoice || "",
                 seedvr2VaeModel: params.seedvr2VaeModel || this.seedvr2VaeModel || params.vaeModel || "",
             });
+            this._applyNegativeTextEncodeFallback(prompt, params.negativePrompt);
             const queued = await this._queueEasyPrompt(prompt, {
                 intentMode: "upscale",
                 scenarioKey: "easy-upscale",
@@ -4254,7 +4293,7 @@ export default class WorkflowRunner {
                 const base = await this.bridge.pullLastGeneration();
                     baselineTs = Number(base?.ts || base?.timestamp || 0) || 0;
             } catch (_e) {}
-            console.warn("[DISPATCHER] ═══ executeScenarioZ2 CALLED ═══");
+            console.warn("[DISPATCHER] --- executeScenarioZ2 CALLED ---");
             console.log("[DISPATCHER] executeScenarioZ2: Setting activePanel=z2, engine=z");
             console.log("[DISPATCHER] executeScenarioZ2: Current state:", {
                 z2QwenModel: this.z2QwenModel,
@@ -4313,8 +4352,8 @@ export default class WorkflowRunner {
                 seedMode2: resolvedZ2.seed_2nd_mode,
                 qwen_model: payloadZ2.extra.qwen_model,
                 qwen_quant: payloadZ2.extra.qwen_quantization,
-                samplers: `${payloadZ2.extra.sampler_name} → ${payloadZ2.extra.sampler_2nd}`,
-                schedulers: `${payloadZ2.extra.scheduler} → ${payloadZ2.extra.scheduler_2nd}`,
+                samplers: `${payloadZ2.extra.sampler_name} ? ${payloadZ2.extra.sampler_2nd}`,
+                schedulers: `${payloadZ2.extra.scheduler} ? ${payloadZ2.extra.scheduler_2nd}`,
                 steps: `${payloadZ2.extra.steps_1st}+${payloadZ2.extra.steps_2nd}`,
                 cfg: `${payloadZ2.extra.cfg_1st ?? payloadZ2.extra.cfg}/${payloadZ2.extra.cfg_2nd ?? payloadZ2.extra.cfg}`,
                 denoise: `${payloadZ2.extra.denoise_1}/${payloadZ2.extra.denoise_2}`,
@@ -4540,7 +4579,7 @@ export default class WorkflowRunner {
 
     async executeScenarioZ3(params = {}) {
         try {
-            console.warn("[DISPATCHER] ═══ executeScenarioZ3 CALLED ═══");
+            console.warn("[DISPATCHER] --- executeScenarioZ3 CALLED ---");
             this.activePanel = "z3";
             this.engine = "z";
             const payloadZ3 = this.buildPayload({ extra: { scenario_override: "z3", engine: "z" } });
@@ -4552,7 +4591,7 @@ export default class WorkflowRunner {
             extra.qwen_vl_enabled = this.qwenEnabled !== false;
             extra.qwen_model = this.z2QwenModel || "Qwen3-VL-4B-Instruct";
             extra.qwen_quantization = this.z2QwenQuant || "4-bit (VRAM-friendly)";
-            extra.qwen_preset_prompt = this.z2QwenPreset || "🖼️ Detailed Description";
+            extra.qwen_preset_prompt = this.z2QwenPreset || "??? Detailed Description";
             extra.qwen_custom_prompt = this.z2QwenCustomPrompt || "";
             extra.qwen_keep_loaded = this.z2QwenKeepLoaded !== false;
             extra.qwen_max_tokens = Math.max(128, Math.min(4096, this._toInt(this.z2QwenMaxTokens, 1024)));

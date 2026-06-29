@@ -1,4 +1,4 @@
-﻿import { loadModeModule, normalizeMode, shouldReuseMode } from "../core/ModeRegistry.js?v=20260629_EASY_CLEAN_BOOT01";
+import { loadModeModule, normalizeMode, shouldReuseMode } from "../core/ModeRegistry.js?v=20260630_EASY_CLEAN_CORE26";
 
 export default class LayoutRouter {
     constructor(eventBus, modules, options = {}) {

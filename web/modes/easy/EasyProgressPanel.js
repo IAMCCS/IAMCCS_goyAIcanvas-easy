@@ -13,6 +13,9 @@ export default class EasyProgressPanel {
         this._progressPct = 0;
         this._statusText = 'Idle';
         this._running = false;
+        this._activePromptId = '';
+        this._api = null;
+        this._apiHandlers = [];
         this._unsubs = [];
 
         this._build();
@@ -49,32 +52,39 @@ export default class EasyProgressPanel {
             this._unsubs.push(() => this.eventBus.off(event, handler));
         };
 
-        _on('workflow:started', () => {
+        _on('workflow:started', (payload = {}) => {
             this._running = true;
+            this._activePromptId = this._extractPromptId(payload);
             this._progressPct = 0;
             this._phase = 0;
             this._phaseCount = 0;
-            this._setStatus('Running...', true);
+            this._setStatus('Queued', true);
             this._setProgress(0);
-            this._setPhase(0, 0);
+            this._setPhase(1, 4, 25);
         });
 
         _on('workflow:finished', () => {
             this._running = false;
+            this._activePromptId = '';
             this._setStatus('Complete');
             this._setProgress(100);
+            this._setPhase(4, 4, 100);
         });
 
         _on('workflow:complete', () => {
             this._running = false;
+            this._activePromptId = '';
             this._setStatus('Complete');
             this._setProgress(100);
+            this._setPhase(4, 4, 100);
         });
 
         _on('workflow:error', (data) => {
             this._running = false;
+            this._activePromptId = '';
             this._setStatus(`Error: ${data?.message || data?.error || 'unknown'}`);
             this._setProgress(0);
+            this._setPhase(0, 4, 0);
         });
 
         _on('workflow:progress', (data) => {
@@ -101,6 +111,64 @@ export default class EasyProgressPanel {
             if (data.phase) this._setStatus(String(data.phase), this._running);
             this._setPhase(data.index || 0, data.count || 0, data.phaseProgress ?? data.progress ?? null);
         });
+
+        this._attachComfyProgressEvents();
+    }
+
+    async _attachComfyProgressEvents() {
+        try {
+            const { api } = await import('/scripts/api.js');
+            this._api = api;
+            const onProgress = (event) => {
+                if (!this._running || !this._matchesPrompt(event?.detail)) return;
+                const detail = event.detail || {};
+                const value = Number(detail.value ?? detail.current ?? detail.step);
+                const max = Number(detail.max ?? detail.total ?? detail.steps);
+                if (Number.isFinite(value) && Number.isFinite(max) && max > 0) {
+                    this._setStatus(`Sampling ${Math.round(value)}/${Math.round(max)}`, true);
+                    this._setProgress((value / max) * 100);
+                    this._setPhase(3, 4, 75);
+                }
+            };
+            const onExecuting = (event) => {
+                if (!this._running || !this._matchesPrompt(event?.detail)) return;
+                const node = event?.detail?.node;
+                if (node == null) {
+                    this._setStatus('Finalizing', true);
+                    this._setPhase(4, 4, 92);
+                } else {
+                    this._setStatus(`Executing node ${node}`, true);
+                    this._setPhase(3, 4, 75);
+                }
+            };
+            const onExecuted = (event) => {
+                if (!this._running || !this._matchesPrompt(event?.detail)) return;
+                const node = event?.detail?.node;
+                if (node != null) this._addTicker(`Executed node ${node}`);
+            };
+            api.addEventListener('progress', onProgress);
+            api.addEventListener('executing', onExecuting);
+            api.addEventListener('executed', onExecuted);
+            this._apiHandlers.push(['progress', onProgress], ['executing', onExecuting], ['executed', onExecuted]);
+        } catch (error) {
+            console.warn('[EasyProgressPanel] ComfyUI progress events unavailable', error);
+        }
+    }
+
+    _extractPromptId(payload = {}) {
+        return String(
+            payload?.prompt_id
+            || payload?.promptId
+            || payload?.payload?.prompt_id
+            || payload?.payload?.promptId
+            || ''
+        ).trim();
+    }
+
+    _matchesPrompt(detail = {}) {
+        if (!this._activePromptId) return true;
+        const id = String(detail?.prompt_id || detail?.promptId || '').trim();
+        return !id || id === this._activePromptId;
     }
 
     _setStatus(text, animatePulse = false) {
@@ -157,6 +225,10 @@ export default class EasyProgressPanel {
     }
 
     cleanup() {
+        for (const [event, handler] of this._apiHandlers) {
+            try { this._api?.removeEventListener?.(event, handler); } catch (_e) {}
+        }
+        this._apiHandlers = [];
         for (const unsub of this._unsubs) { try { unsub(); } catch (_e) {} }
         this._unsubs = [];
     }

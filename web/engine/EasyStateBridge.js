@@ -1,4 +1,4 @@
-﻿import Constants from "../utils/Constants.js";
+import Constants from "../utils/Constants.js";
 
 export default class EasyStateBridge {
     constructor(eventBus) {

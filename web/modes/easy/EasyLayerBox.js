@@ -1,4 +1,4 @@
-﻿export default class EasyLayerBox {
+export default class EasyLayerBox {
     constructor(container, eventBus, modules = {}) {
         this.container = container;
         this.eventBus = eventBus;
@@ -6,13 +6,19 @@
         this.layerManager = modules.layerManager;
         this._unsubs = [];
         this._pendingBackgroundColor = null;
+        this._backgroundPickerActive = false;
+        this._dragLayerId = null;
         this._bindBus();
         this.render();
     }
 
     _bindBus() {
-        this._unsubs.push(this.eventBus.on("layers:changed", () => this.render()));
-        this._unsubs.push(this.eventBus.on("layer:selected", () => this.render()));
+        this._unsubs.push(this.eventBus.on("layers:changed", () => {
+            if (!this._backgroundPickerActive) this.render();
+        }));
+        this._unsubs.push(this.eventBus.on("layer:selected", () => {
+            if (!this._backgroundPickerActive) this.render();
+        }));
     }
 
     render() {
@@ -55,7 +61,8 @@
                </label>`
             : `<div class="easy-layer-box__thumb" style="${thumbStyle}"></div>`;
         return `
-            <div class="easy-layer-box__layer${active ? " is-active" : ""}${locked ? " is-locked" : ""}" data-layer-id="${this._escapeAttr(layer.id)}">
+            <div class="easy-layer-box__layer${active ? " is-active" : ""}${locked ? " is-locked" : ""}" data-layer-id="${this._escapeAttr(layer.id)}" ${locked ? "" : 'draggable="true"'}>
+                <button type="button" class="easy-layer-box__drag" data-action="drag-layer" ${locked ? "disabled" : ""} title="Drag layer">::</button>
                 <button type="button" class="easy-layer-box__eye" data-action="toggle-visible" title="${visible ? "Hide" : "Show"}">${visible ? "On" : "Off"}</button>
                 ${thumb}
                 <button type="button" class="easy-layer-box__name" data-action="select-layer">${safeName}</button>
@@ -92,6 +99,35 @@
         });
         this.container.querySelectorAll(".easy-layer-box__layer").forEach((row) => {
             const id = row.dataset.layerId;
+            row.addEventListener("dragstart", (event) => {
+                if (row.classList.contains("is-locked")) {
+                    event.preventDefault();
+                    return;
+                }
+                this._dragLayerId = id;
+                row.classList.add("is-dragging");
+                event.dataTransfer.effectAllowed = "move";
+                event.dataTransfer.setData("text/plain", id);
+            });
+            row.addEventListener("dragover", (event) => {
+                if (!this._dragLayerId || this._dragLayerId === id) return;
+                event.preventDefault();
+                event.dataTransfer.dropEffect = "move";
+                const before = this._dropBeforeRow(event, row);
+                row.classList.toggle("is-drop-before", before);
+                row.classList.toggle("is-drop-after", !before);
+            });
+            row.addEventListener("dragleave", () => {
+                row.classList.remove("is-drop-before", "is-drop-after");
+            });
+            row.addEventListener("drop", (event) => {
+                if (!this._dragLayerId || this._dragLayerId === id) return;
+                event.preventDefault();
+                const before = this._dropBeforeRow(event, row);
+                this._reorderByVisualDrop(this._dragLayerId, id, before);
+                this._clearDragState();
+            });
+            row.addEventListener("dragend", () => this._clearDragState());
             row.addEventListener("click", (event) => {
                 if (event.target.closest("button, input, select, textarea")) return;
                 this.layerManager?.selectLayer?.(id);
@@ -118,8 +154,14 @@
                 }
             });
             const backgroundInput = row.querySelector("[data-action='background-color']");
-            backgroundInput?.addEventListener("pointerdown", (event) => event.stopPropagation());
-            backgroundInput?.addEventListener("click", (event) => event.stopPropagation());
+            backgroundInput?.addEventListener("pointerdown", (event) => {
+                event.stopPropagation();
+                this._backgroundPickerActive = true;
+            });
+            backgroundInput?.addEventListener("click", (event) => {
+                event.stopPropagation();
+                this._backgroundPickerActive = true;
+            });
             backgroundInput?.addEventListener("input", (event) => {
                 event.stopPropagation();
                 this._stageBackgroundColor(event.target.value, row);
@@ -128,6 +170,8 @@
                 event.stopPropagation();
                 this._setBackgroundColor(this._pendingBackgroundColor || event.target.value);
                 this._pendingBackgroundColor = null;
+                this._backgroundPickerActive = false;
+                this.render();
             });
             backgroundInput?.addEventListener("keydown", (event) => {
                 event.stopPropagation();
@@ -135,9 +179,12 @@
                     event.preventDefault();
                     this._setBackgroundColor(this._pendingBackgroundColor || event.target.value);
                     this._pendingBackgroundColor = null;
+                    this._backgroundPickerActive = false;
+                    this.render();
                 } else if (event.key === "Escape") {
                     event.preventDefault();
                     this._pendingBackgroundColor = null;
+                    this._backgroundPickerActive = false;
                     const layer = this.layerManager?.getLayerById?.("layer_background");
                     const color = this._backgroundColorValue(layer);
                     event.target.value = color;
@@ -145,6 +192,35 @@
                     if (thumb) thumb.style.background = color;
                 }
             });
+        });
+    }
+
+    _dropBeforeRow(event, row) {
+        const rect = row.getBoundingClientRect();
+        return (event.clientY - rect.top) < rect.height / 2;
+    }
+
+    _reorderByVisualDrop(dragId, targetId, beforeTarget) {
+        const rows = Array.from(this.container.querySelectorAll(".easy-layer-box__layer"));
+        const visualIds = rows.map((row) => row.dataset.layerId).filter((id) => id && id !== "layer_background");
+        const withoutDrag = visualIds.filter((id) => id !== dragId);
+        const targetIndex = withoutDrag.indexOf(targetId);
+        if (targetIndex < 0) return;
+        withoutDrag.splice(beforeTarget ? targetIndex : targetIndex + 1, 0, dragId);
+        const stackOrder = withoutDrag.slice().reverse();
+        const changed = this.layerManager?.reorderLayers?.(stackOrder);
+        if (changed) {
+            this.layerManager?.selectLayer?.(dragId);
+            this.eventBus.emit("status:message", "Layer order updated");
+            this.eventBus.emit("canvas:export:composite", { reason: "layer-reorder" });
+            this.eventBus.emit("workflow:params:changed", { immediate: true });
+        }
+    }
+
+    _clearDragState() {
+        this._dragLayerId = null;
+        this.container.querySelectorAll(".easy-layer-box__layer").forEach((row) => {
+            row.classList.remove("is-dragging", "is-drop-before", "is-drop-after");
         });
     }
 
@@ -164,20 +240,16 @@
         if (thumb) thumb.style.background = value;
         const layer = this.layerManager?.getLayerById?.("layer_background");
         if (!layer) return;
-        this.layerManager?.updateLayer?.({
-            id: "layer_background",
-            announce: false,
-            patch: {
-                locked: true,
-                visible: true,
-                metadata: {
-                    ...(layer.metadata || {}),
-                    backgroundColor: value,
-                },
-            },
-        });
+        layer.locked = true;
+        layer.visible = true;
+        layer.metadata = {
+            ...(layer.metadata || {}),
+            backgroundColor: value,
+            easyAutoDrawBackground: false,
+            easyRole: "background",
+        };
         this.eventBus.emit("background:color:update", { color: value, source: "easy-background-preview" });
-        this.eventBus.emit("canvas:refresh", { reason: "background-color-preview" });
+        this.eventBus.emit("canvas:render:request", { reason: "background-color-preview" });
     }
 
     _setBackgroundColor(color) {
@@ -192,10 +264,12 @@
                 metadata: {
                     ...(layer.metadata || {}),
                     backgroundColor: value,
+                    easyAutoDrawBackground: false,
                 },
             },
         });
         this.eventBus.emit("background:color:update", { color: value, source: "easy-background" });
+        this.eventBus.emit("canvas:render:request", { reason: "background-color" });
         this.eventBus.emit("canvas:refresh", { reason: "background-color" });
         this.eventBus.emit("canvas:export:composite", { reason: "background-color" });
     }

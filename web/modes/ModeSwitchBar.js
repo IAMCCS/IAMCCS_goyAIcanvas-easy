@@ -1,10 +1,10 @@
-﻿/**
+/**
  * ModeSwitchBar.js
  * Header bar rendered from ModeRegistry, not hardcoded mode buttons.
  */
 
-import { getModeDefinitions, normalizeMode } from '../core/ModeRegistry.js?v=20260628_EASY_LAZY_FIX01';
-import { getGoyaBuildLabel } from '../app/BuildInfo.js?v=20260609_STRUCT_MODE_REGISTRY01';
+import { getModeDefinitions, normalizeMode } from '../core/ModeRegistry.js?v=20260630_EASY_CLEAN_CORE26';
+import { getGoyaBuildLabel } from '../app/BuildInfo.js?v=20260630_EASY_CLEAN_CORE26';
 
 export default class ModeSwitchBar {
     constructor(container, eventBus, initialMode = 'easy') {

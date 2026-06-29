@@ -1,4 +1,4 @@
-﻿export function getPromptEnhancerEntries() {
+export function getPromptEnhancerEntries() {
     return [];
 }
 

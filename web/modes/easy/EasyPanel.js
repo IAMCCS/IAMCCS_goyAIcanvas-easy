@@ -124,6 +124,8 @@ export default class EasyPanel {
             seedvr2DitChoice: '',
             seedvr2DitModels: [],
             seedvr2VaeModels: [],
+            seedMode: 'randomize',
+            seedValue: 0,
             clipModels: [],
             vaeModels: [],
             loraModels: [],
@@ -404,6 +406,8 @@ export default class EasyPanel {
             fl2Vae: this.pickInstalled(clean.fl2Vae, vaeModels),
             seedvr2DitModel: this.pickInstalled(clean.seedvr2DitModel, seedvr2DitModels),
             seedvr2VaeModel: this.pickInstalled(clean.seedvr2VaeModel, seedvr2VaeModels),
+            seedMode: String(clean.seedMode || 'randomize') === 'locked' ? 'locked' : 'randomize',
+            seedValue: Math.max(0, Math.floor(Number(clean.seedValue) || 0)),
         };
     }
 
@@ -424,6 +428,8 @@ export default class EasyPanel {
         if (clean.zModel) this.state.t2iModelChoices.z = normalizeModelName(clean.zModel);
         if (clean.fl2Model) this.state.t2iModelChoices.fl2 = normalizeModelName(clean.fl2Model);
         if (clean.seedvr2DitModel) this.state.seedvr2DitChoice = normalizeModelName(clean.seedvr2DitModel);
+        this.state.seedMode = String(clean.seedMode || this.state.seedMode || 'randomize') === 'locked' ? 'locked' : 'randomize';
+        this.state.seedValue = Math.max(0, Math.floor(Number(clean.seedValue ?? this.state.seedValue) || 0));
     }
 
     pickInitialT2IModel(templateKey, items) {
@@ -863,8 +869,17 @@ export default class EasyPanel {
     }
 
     _getEasySourceImageDataUrl(options = {}) {
+        const forceComposite = !!options.forceComposite;
         const preferLayerSource = !!options.preferLayerSource;
         const preferDrawSource = !!options.preferDrawSource;
+        if (forceComposite) {
+            try {
+                const composite = this.modules?.canvasView?.exportComposite?.();
+                if (this._isImageDataUrl(composite)) {
+                    return composite;
+                }
+            } catch (_e) {}
+        }
         if (preferDrawSource) {
             const drawLayer = findEasyLayer(this.modules?.layerManager, getEasyRoleForMode('draw'));
             if (this._isImageDataUrl(drawLayer?.bitmap)) {
@@ -963,6 +978,10 @@ export default class EasyPanel {
         } else if (this.state.easyMode === 'upscale') {
             this.applyUpscaleTemplate(wr);
         }
+        const generationSeed = this.state.seedMode === 'locked'
+            ? Math.max(0, Math.floor(Number(this.state.seedValue) || 0))
+            : -1;
+        wr.setSeed?.(generationSeed);
 
         this.eventBus.emit('workflow:params:changed');
 
@@ -1001,6 +1020,7 @@ export default class EasyPanel {
             scheduler: activeT2ITemplate?.scheduler || EASY_FL2_EDIT_DEFAULTS.scheduler,
             prompt: this.state.prompt,
             negativePrompt: this.state.negativePrompt,
+            seed: generationSeed,
             width: this.state.width,
             height: this.state.height,
             ...this.getEasyLoraSettings(),
@@ -1014,6 +1034,7 @@ export default class EasyPanel {
             await this._waitForCanvasCompositeReady();
             executionPayload.sourceImageDataUrl = this._getEasySourceImageDataUrl({
                 preferLayerSource: this.state.easyMode === 'outpaint',
+                forceComposite: this.state.easyMode !== 'outpaint',
                 preferDrawSource: false,
             });
             if (this.state.easyMode === 'inpaint') {

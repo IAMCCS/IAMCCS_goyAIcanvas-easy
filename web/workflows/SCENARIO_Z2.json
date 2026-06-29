@@ -279,7 +279,7 @@
         }
       },
       "widgets_values": [
-        "1girl,crop_top,asian,bob_cut, jeans"
+        ""
       ],
       "color": "#232",
       "bgcolor": "#353",
@@ -1916,7 +1916,7 @@
         }
       },
       "widgets_values": [
-        "worst_quality, bad_quality,bad_hands,very_displeasing, boring, long_body, monochrome, watermark , lowres, worst quality, low quality, normal quality, jpeg artifacts,korean comic style,off center crop,slant out of frame,drifting eyeline,double eyelashes,text to the face ,eye patch,shaking hands,arrow toes,background characters with blurred faces,unconscious expression,nasty smile,\"ng_deepnegative_v1_75t\",\n\n\n     # bad anatomy & pose\n\n,bad hands,missing hands,missing fingers,bad feet,cropped off limbs,weak hands,sketch hands,\n\ndehydrated ,aged,mature ,blurry and background, disfigurement,(bad eyes),(bad fingers),flat  face,\n\nlayout text, overlay text,cover title, signature, captions, comic panel,interoframe,line breaks,\n\nusername, artist signature, water mark,displayed text,Scanner Text,Date,website, artist's name,artist name, page number, translation,subtitle,chinese text,korean hangul text,russian cyrill\n\nJPEG Artifacts, compression, noisy, grainy, low quality, amateuric text, english text, twitter id, instagram id, twitter username, patreon username,frame,comic_fram"
+        ""
       ],
       "color": "#322",
       "bgcolor": "#533",

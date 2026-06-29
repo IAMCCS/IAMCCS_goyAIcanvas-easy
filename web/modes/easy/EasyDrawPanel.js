@@ -1,4 +1,4 @@
-﻿/**
+/**
  * EasyDrawPanel.js
  * Easy drawing controls for helper-layer and inpaint-mask workflows.
  */
@@ -53,19 +53,22 @@ export default class EasyDrawPanel {
         const onModeChange = ({ mode }) => {
             this.state.easyMode = mode || 't2i';
             if (this.state.easyMode === 'inpaint') {
+                this._restoreAutoDrawBackground();
+                this.eventBus.emit('canvas:mode', { drawOnly: false });
                 this.state.tool = 'brush';
                 this.state.brushColor = EASY_INPAINT_MASK_COLOR;
-                this._ensureIntentLayer();
                 this._applyToolState();
             } else if (this.state.easyMode === 'draw') {
                 this.state.tool = 'pencil';
                 this.state.brushColor = '#000000';
                 this.state.brushSize = Math.max(1, Math.round(Number(this.state.brushSize) || 32));
                 this.eventBus.emit('canvas:pan:mode', { enabled: false });
+                this._setDocumentBackground('#ffffff', { autoDraw: true });
                 this.eventBus.emit('canvas:mode', { drawOnly: true });
-                this._ensureIntentLayer();
                 this._applyToolState();
             } else {
+                this._restoreAutoDrawBackground();
+                this.eventBus.emit('canvas:mode', { drawOnly: false });
                 this.eventBus.emit('canvas:pan:mode', { enabled: false });
                 this.eventBus.emit('mask:paintMode', { enabled: false });
                 this.eventBus.emit('mask:overlay', { enabled: false });
@@ -86,7 +89,6 @@ export default class EasyDrawPanel {
                 this.state.tool = 'pencil';
                 this.state.brushColor = '#000000';
                 this.state.brushSize = Math.max(1, Math.round(Number(this.state.brushSize) || 32));
-                this._ensureIntentLayer();
                 this._applyToolState();
             }
             if (!this.state.drawOnly && this.state.easyMode !== 'inpaint') {
@@ -316,15 +318,14 @@ export default class EasyDrawPanel {
             }
             return directLayer || null;
         }
-        const delegated = this.modules?.renderer?.toolTargetResolver?.ensureEasyManagedLayer?.();
         const role = this._getIntentRole();
         if (!role) return null;
         const name = this.state.easyMode === 'inpaint' ? 'Easy Inpaint Mask' : 'Easy Paint Layer';
-        const layer = delegated || ensureEasyLayer(this.modules?.layerManager, role, name);
+        const layer = ensureEasyLayer(this.modules?.layerManager, role, name);
         if (!layer) return null;
 
         debugTrace('[EasyDrawPanel] ensure-intent-layer', {
-            delegated: !!delegated,
+            delegated: false,
             role,
             resolvedLayerId: layer.id,
             resolvedLayerName: layer.name,
@@ -395,17 +396,44 @@ export default class EasyDrawPanel {
     _syncCanvasSurface() {
         const canvasEl = this.modules?.canvasView?.canvas || document.querySelector('#goya-main-canvas');
         if (!canvasEl) return;
+        canvasEl.classList.remove('goya-main-canvas--draw-surface');
+    }
 
-        if (!this._originalCanvasBackgroundColorCaptured) {
-            this._originalCanvasBackgroundColor = canvasEl.style.backgroundColor || '';
-            this._originalCanvasBackgroundColorCaptured = true;
+    _setDocumentBackground(color, { autoDraw = false } = {}) {
+        const value = this._normalizeColor(color);
+        const layerManager = this.modules?.layerManager;
+        const layer = layerManager?.getLayerById?.('layer_background');
+        if (!layer) return;
+        layerManager.updateLayer?.({
+            id: 'layer_background',
+            announce: false,
+            patch: {
+                locked: true,
+                visible: true,
+                metadata: {
+                    ...(layer.metadata || {}),
+                    backgroundColor: value,
+                    easyAutoDrawBackground: !!autoDraw,
+                    easyRole: 'background',
+                },
+            },
+        });
+        this.eventBus.emit('background:color:update', { color: value, source: autoDraw ? 'easy-draw-auto-background' : 'easy-background' });
+        this.eventBus.emit('canvas:render:request', { reason: autoDraw ? 'draw-background' : 'background' });
+    }
+
+    _restoreAutoDrawBackground() {
+        const layer = this.modules?.layerManager?.getLayerById?.('layer_background');
+        if (layer?.metadata?.easyAutoDrawBackground) {
+            this._setDocumentBackground('#101318', { autoDraw: false });
         }
+    }
 
-        const drawSurface = this.state.drawOnly || this.state.easyMode === 'draw';
-        canvasEl.classList.toggle('goya-main-canvas--draw-surface', drawSurface);
-        canvasEl.style.backgroundColor = drawSurface
-            ? '#ffffff'
-            : this._originalCanvasBackgroundColor;
+    _normalizeColor(color) {
+        const raw = String(color || '').trim();
+        if (/^#[0-9a-f]{6}$/i.test(raw)) return raw;
+        if (/^#[0-9a-f]{3}$/i.test(raw)) return `#${raw.slice(1).split('').map((char) => `${char}${char}`).join('')}`;
+        return '#101318';
     }
 
     _getSurfaceStatus() {

@@ -1,4 +1,4 @@
-﻿export default class EasyPromptManager {
+export default class EasyPromptManager {
     constructor(eventBus) {
         this.eventBus = eventBus;
         this.globalPrompt = { positive: "", negative: "", strength: 1, guidance: 1, cfg: 1, applyToAll: false };

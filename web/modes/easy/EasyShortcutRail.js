@@ -59,6 +59,8 @@ export default class EasyShortcutRail {
                         <button class="easy-shortcut-rail__btn" id="easy-tool-move" data-tool="move">Move</button>
                         <button class="easy-shortcut-rail__btn" id="easy-tool-scale" data-tool="scale">Scale</button>
                         <button class="easy-shortcut-rail__btn" id="easy-tool-rotate" data-tool="rotate">Rotate</button>
+                        <button class="easy-shortcut-rail__btn" id="easy-tool-crop">Crop</button>
+                        <button class="easy-shortcut-rail__btn" id="easy-tool-apply-crop">Apply Crop</button>
                         <button class="easy-shortcut-rail__btn" id="easy-tool-reframe">Reframe</button>
                     </div>
                     <div class="easy-shortcut-rail__danger-row">
@@ -161,6 +163,23 @@ export default class EasyShortcutRail {
             this.eventBus.emit('tool:change', 'rotate');
         });
 
+        this.container.querySelector('#easy-tool-crop')?.addEventListener('click', () => {
+            if (this._cropActive) {
+                this.eventBus.emit('canvas:crop:cancel');
+                activateSelectMode();
+                return;
+            }
+            this.eventBus.emit('canvas:frame', { enabled: false });
+            this.eventBus.emit('canvas:pan:mode', { enabled: false });
+            this.eventBus.emit('tool:change', 'cursor');
+            this.eventBus.emit('canvas:crop:start');
+            this.eventBus.emit('status:message', 'Drag a crop rectangle on the canvas');
+        });
+
+        this.container.querySelector('#easy-tool-apply-crop')?.addEventListener('click', () => {
+            this.eventBus.emit('canvas:crop:apply');
+        });
+
         this.container.querySelector('#easy-tool-cancel')?.addEventListener('click', () => {
             this.eventBus.emit('easy:generation:reset', { reason: 'clear-layer-button' });
             this.eventBus.emit('canvas:selection:delete');
@@ -195,6 +214,8 @@ export default class EasyShortcutRail {
             const isActive = tool === 'cursor' ? (this._activeTool === 'cursor' && this._frameEnabled) : this._activeTool === tool;
             button.classList.toggle('is-active', isActive);
         });
+        this.container.querySelector('#easy-tool-crop')?.classList.toggle('is-active', this._cropActive);
+        this.container.querySelector('#easy-tool-apply-crop')?.toggleAttribute('disabled', !this._cropActive);
     }
 
     cleanup() {

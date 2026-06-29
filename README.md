@@ -2,7 +2,7 @@
 
 ![goyAIcanvas logo](web/assets/goyaicanvas.png)
 
-**Version:** 1.0.0  
+**Version:** 1.0.2  
 **Author / project:** [patreon.com/IAMCCS](https://patreon.com/IAMCCS)  
 **ComfyUI node name:** `IAMCCS_goyAIcanvas-easy`
 

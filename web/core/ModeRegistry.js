@@ -1,10 +1,10 @@
-﻿export const MODE_DEFINITIONS = Object.freeze([
+export const MODE_DEFINITIONS = Object.freeze([
     {
         id: "easy",
         label: "EASY",
         tier: "public",
         status: "active",
-        loader: () => import("../modes/easy/EasyMode.js?v=20260629_EASY_CLEAN_BOOT01"),
+        loader: () => import("../modes/easy/EasyMode.js?v=20260630_EASY_CLEAN_CORE26"),
     },
 ]);
 

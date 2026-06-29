@@ -10,6 +10,8 @@ const EMPTY_SETTINGS = {
     fl2Vae: '',
     seedvr2DitModel: '',
     seedvr2VaeModel: '',
+    seedMode: 'randomize',
+    seedValue: 0,
 };
 
 function escapeHtml(value) {
@@ -113,6 +115,8 @@ export default class EasySettingsPanel {
         this.settings.fl2Vae = this._keepInstalled(this.settings.fl2Vae, this.catalog.vaes);
         this.settings.seedvr2DitModel = this._keepInstalled(this.settings.seedvr2DitModel, this.catalog.seedvr2Models);
         this.settings.seedvr2VaeModel = this._keepInstalled(this.settings.seedvr2VaeModel, this.catalog.seedvr2Vaes);
+        this.settings.seedMode = String(this.settings.seedMode || 'randomize') === 'locked' ? 'locked' : 'randomize';
+        this.settings.seedValue = Math.max(0, Math.floor(Number(this.settings.seedValue) || 0));
     }
 
     _keepInstalled(current, items) {
@@ -185,6 +189,7 @@ export default class EasySettingsPanel {
                     ${this._field('Flux.2 VAE', 'fl2Vae', this.catalog.vaes)}
                     ${this._field('SeedVR2 DiT Model', 'seedvr2DitModel', this.catalog.seedvr2Models)}
                     ${this._field('SeedVR2 VAE', 'seedvr2VaeModel', this.catalog.seedvr2Vaes)}
+                    ${this._seedControls()}
                 </div>
                 <div class="easy-settings-card__foot">
                     <button type="button" data-action="save" ${this.loading ? 'disabled' : ''}>Save</button>
@@ -205,15 +210,33 @@ export default class EasySettingsPanel {
         `;
     }
 
+    _seedControls() {
+        return `
+            <label class="easy-settings-field">
+                <span>Seed Mode</span>
+                <select data-setting-key="seedMode">
+                    <option value="randomize" ${this.settings.seedMode !== 'locked' ? 'selected' : ''}>Randomize</option>
+                    <option value="locked" ${this.settings.seedMode === 'locked' ? 'selected' : ''}>Locked</option>
+                </select>
+            </label>
+            <label class="easy-settings-field">
+                <span>Locked Seed</span>
+                <input type="number" min="0" step="1" data-setting-key="seedValue" value="${escapeHtml(this.settings.seedValue)}" />
+            </label>
+        `;
+    }
+
     attachListeners() {
         this.overlay.querySelector('[data-action="close"]')?.addEventListener('click', () => this.hide());
         this.overlay.querySelector('[data-action="reload"]')?.addEventListener('click', () => this.load());
         this.overlay.querySelector('[data-action="save"]')?.addEventListener('click', () => this.save());
-        this.overlay.querySelectorAll('[data-setting-key]').forEach((select) => {
-            select.addEventListener('change', (event) => {
+        this.overlay.querySelectorAll('[data-setting-key]').forEach((control) => {
+            control.addEventListener('change', (event) => {
                 const key = event.currentTarget.dataset.settingKey;
                 if (!key) return;
-                this.settings[key] = event.currentTarget.value;
+                this.settings[key] = key === 'seedValue'
+                    ? Math.max(0, Math.floor(Number(event.currentTarget.value) || 0))
+                    : event.currentTarget.value;
                 this._emitChanged();
             });
         });

@@ -3,14 +3,14 @@
  * Entry point for EASY mode - beginner-friendly UI
  */
 
-import EasyPanel from './EasyPanel.js?v=20260629_EASY_CROP_DISABLED01';
-import EasyGallery from './EasyGallery.js?v=20260629_EASY_CROP_DISABLED01';
-import EasyShortcutRail from './EasyShortcutRail.js?v=20260629_EASY_CROP_DISABLED01';
-import EasyDrawPanel from './EasyDrawPanel.js?v=20260629_EASY_CROP_DISABLED01';
-import EasyLayerBox from './EasyLayerBox.js?v=20260629_EASY_CROP_DISABLED01';
-import EasySelectionOverlay from './EasySelectionOverlay.js?v=20260629_EASY_CROP_DISABLED01';
-import EasyProgressPanel from './EasyProgressPanel.js?v=20260629_EASY_CROP_DISABLED01';
-import EasyPromptPanel from './EasyPromptPanel.js?v=20260629_EASY_CROP_DISABLED01';
+import EasyPanel from './EasyPanel.js?v=20260630_EASY_CLEAN_CORE26';
+import EasyGallery from './EasyGallery.js?v=20260630_EASY_CLEAN_CORE26';
+import EasyShortcutRail from './EasyShortcutRail.js?v=20260630_EASY_CLEAN_CORE26';
+import EasyDrawPanel from './EasyDrawPanel.js?v=20260630_EASY_CLEAN_CORE26';
+import EasyLayerBox from './EasyLayerBox.js?v=20260630_EASY_CLEAN_CORE26';
+import EasySelectionOverlay from './EasySelectionOverlay.js?v=20260630_EASY_CLEAN_CORE26';
+import EasyProgressPanel from './EasyProgressPanel.js?v=20260630_EASY_CLEAN_CORE26';
+import EasyPromptPanel from './EasyPromptPanel.js?v=20260630_EASY_CLEAN_CORE26';
 
 export default class EasyMode {
     constructor(workspace, eventBus, modules) {

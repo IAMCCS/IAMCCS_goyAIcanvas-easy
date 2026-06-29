@@ -1,4 +1,4 @@
-﻿import Constants from "../utils/Constants.js";
+import Constants from "../utils/Constants.js";
 
 const clone = (value) => {
     try { return JSON.parse(JSON.stringify(value)); } catch (_e) { return value; }
@@ -69,6 +69,38 @@ export default class EasyLayerManager {
         return layer;
     }
 
+    replaceWithRasterDocument(dataUrl, options = {}) {
+        const width = Math.max(1, Math.round(Number(options.width || this.width) || this.width || Constants.CANVAS_WIDTH));
+        const height = Math.max(1, Math.round(Number(options.height || this.height) || this.height || Constants.CANVAS_HEIGHT));
+        const previousBackground = this.getLayerById("layer_background")?.metadata?.backgroundColor || "#101318";
+        const background = this._backgroundLayer();
+        background.metadata = {
+            ...(background.metadata || {}),
+            backgroundColor: options.backgroundColor || previousBackground,
+            easyRole: "background",
+        };
+        const layer = this._newLayer(options.name || "Cropped Image");
+        layer.bitmap = dataUrl || "";
+        layer.mask = "";
+        layer.opacity = 1;
+        layer.blendMode = "normal";
+        layer.metadata = {
+            source: { type: "crop", mode: "easy-crop" },
+            originalWidth: width,
+            originalHeight: height,
+            easyRole: "import",
+        };
+
+        this.snapshot();
+        this.width = width;
+        this.height = height;
+        this.layers = [background, layer];
+        this.activeLayerId = layer.id;
+        this._emitChanged();
+        this.selectLayer(layer.id);
+        return layer;
+    }
+
     removeLayer(id) {
         const layer = this.getLayerById(id);
         if (!layer || layer.locked || layer.id === "layer_background") return false;
@@ -111,6 +143,33 @@ export default class EasyLayerManager {
         this.layers.push(layer);
         this._emitChanged();
         return layer;
+    }
+
+    reorderLayers(orderedIds = []) {
+        const ids = Array.isArray(orderedIds) ? orderedIds.map((id) => String(id || "")).filter(Boolean) : [];
+        if (!ids.length) return false;
+        const byId = new Map(this.layers.map((layer) => [layer.id, layer]));
+        const background = byId.get("layer_background") || this.layers.find((layer) => layer.locked) || null;
+        const next = [];
+        if (background) next.push(background);
+        for (const id of ids) {
+            const layer = byId.get(id);
+            if (!layer || layer.id === "layer_background" || next.includes(layer)) continue;
+            next.push(layer);
+        }
+        for (const layer of this.layers) {
+            if (!layer || layer.id === "layer_background" || next.includes(layer)) continue;
+            next.push(layer);
+        }
+        if (next.length !== this.layers.length) return false;
+        const before = this.layers.map((layer) => layer.id).join("|");
+        const after = next.map((layer) => layer.id).join("|");
+        if (before === after) return false;
+        this.snapshot();
+        this.layers = next;
+        this._emitChanged();
+        this.selectLayer(this.activeLayerId);
+        return true;
     }
 
     snapshot() {

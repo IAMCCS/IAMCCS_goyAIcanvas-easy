@@ -1,4 +1,4 @@
-﻿export default class EasyMaskManager {
+export default class EasyMaskManager {
     constructor(eventBus, layerManager) {
         this.eventBus = eventBus;
         this.layerManager = layerManager;

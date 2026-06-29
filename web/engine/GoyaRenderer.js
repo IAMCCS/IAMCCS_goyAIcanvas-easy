@@ -151,6 +151,11 @@ export default class IAMCCSRenderer {
             this._syncImageCache(layers);
             this._requestRender();
         });
+        this.eventBus.on("canvas:render:request", () => this._requestRender());
+        this.eventBus.on("canvas:refresh", () => this._requestRender());
+        this.eventBus.on("background:color:update", () => this._requestRender());
+        this.eventBus.on("canvas:crop:rect", () => this._requestRender());
+        this.eventBus.on("canvas:crop:state", () => this._requestRender());
         this.eventBus.on("layer:delete", (layerId) => {
             try { if (layerId) this.imageCache.delete(layerId); } catch (_e) {}
             try { if (layerId) this.maskCache.delete(layerId); } catch (_e) {}
@@ -379,6 +384,7 @@ export default class IAMCCSRenderer {
     render() {
         const layers = this.layerManager.getLayers();
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this._paintDocumentBackground(layers);
         let ghostShown = false;
         // Capture overlay intent once per frame (global tool state).
         const paintToMaskGlobal = this.maskManager.isPaintToMask?.() || false;
@@ -386,6 +392,9 @@ export default class IAMCCSRenderer {
         const showOverlayGlobal = showOverlayUserGlobal || paintToMaskGlobal;
         for (const layer of layers) {
             if (!layer.visible) {
+                continue;
+            }
+            if (layer.id === "layer_background") {
                 continue;
             }
             this.ctx.save();
@@ -599,10 +608,6 @@ export default class IAMCCSRenderer {
                             // If it throws, ignore and let the user reapply the bitmap.
                         }
                     }
-                } else if (layer.id === "layer_background") {
-                    const fill = this.toolTargetResolver?.drawOnly ? "#ffffff" : (layer.metadata?.backgroundColor ?? "#1f1f1f");
-                    this.ctx.fillStyle = fill;
-                    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
                 }
             }
 
@@ -640,6 +645,26 @@ export default class IAMCCSRenderer {
 
         // Hide ghost overlay if not shown in this frame
         if (!ghostShown && this._ghostEl) this._ghostEl.style.display = 'none';
+    }
+
+    _paintDocumentBackground(layers) {
+        const background = layers?.find?.((layer) => layer?.id === "layer_background");
+        const fill = this._normalizeBackgroundColor(background?.metadata?.backgroundColor);
+        this.ctx.save();
+        this.ctx.globalAlpha = 1;
+        this.ctx.globalCompositeOperation = "source-over";
+        this.ctx.fillStyle = fill;
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.restore();
+    }
+
+    _normalizeBackgroundColor(value) {
+        const raw = String(value || "").trim();
+        if (/^#[0-9a-f]{6}$/i.test(raw)) return raw;
+        if (/^#[0-9a-f]{3}$/i.test(raw)) {
+            return `#${raw.slice(1).split("").map((char) => `${char}${char}`).join("")}`;
+        }
+        return "#101318";
     }
 
     _isBrokenHtmlImage(img) {
@@ -1818,7 +1843,7 @@ export default class IAMCCSRenderer {
                         bctx.drawImage(image, 0, 0, w, h);
                     }
                 } else if (layer.id === 'layer_background') {
-                    const fill = this.toolTargetResolver?.drawOnly ? '#ffffff' : (layer.metadata?.backgroundColor ?? '#1f1f1f');
+                    const fill = layer.metadata?.backgroundColor ?? '#101318';
                     bctx.fillStyle = fill; bctx.fillRect(0,0,w,h);
                 }
             }
@@ -1920,7 +1945,7 @@ export default class IAMCCSRenderer {
                 this._drawImageAtNativeSize(this.liveLayerCtx, image);
             }
         } else if (layer.id === "layer_background") {
-            const fill = this.toolTargetResolver?.drawOnly ? "#ffffff" : (layer.metadata?.backgroundColor ?? "#1f1f1f");
+            const fill = layer.metadata?.backgroundColor ?? "#101318";
             this.liveLayerCtx.fillStyle = fill;
             this.liveLayerCtx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         }
@@ -2306,7 +2331,7 @@ export default class IAMCCSRenderer {
                 ctx.restore();
             }
         } else if (layer.id === 'layer_background') {
-            const fill = this.toolTargetResolver?.drawOnly ? '#ffffff' : (layer.metadata?.backgroundColor ?? '#1f1f1f');
+            const fill = layer.metadata?.backgroundColor ?? '#101318';
             ctx.fillStyle = fill;
             ctx.fillRect(0, 0, snapshot.width, snapshot.height);
         }

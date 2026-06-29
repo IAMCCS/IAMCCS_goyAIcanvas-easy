@@ -1,8 +1,10 @@
 import UIHelpers from "../utils/UIHelpers.js";
 import { debugTrace } from "../utils/DebugTrace.js";
 import Constants from "../utils/Constants.js";
-import IAMCCSRenderer from "../engine/GoyaRenderer.js?v=20260629_EASY_CROP_DISABLED01";
-import TransformMath from "../engine/EasyTransformMath.js?v=20260629_EASY_CLEAN_BOOT01";
+import EasyCanvasKernel from "./EasyCanvasKernel.js?v=20260630_EASY_CLEAN_CORE26";
+import TransformMath from "../engine/EasyTransformMath.js?v=20260630_EASY_CLEAN_CORE26";
+import EasyCanvasDocument from "./EasyCanvasDocument.js?v=20260630_EASY_CLEAN_CORE26";
+import EasyCropController from "./EasyCropController.js?v=20260630_EASY_CLEAN_CORE26";
 
 export default class CanvasView {
     constructor(hostElement, eventBus, layerManager, maskManager) {
@@ -59,7 +61,17 @@ export default class CanvasView {
         this.container.append(this.compareOverlay);
         this._buildSketchHud();
         hostElement.append(this.container);
-        this.renderer = new IAMCCSRenderer(this.canvas, this.eventBus, this.layerManager, this.maskManager);
+        this.renderer = new EasyCanvasKernel(this.canvas, this.eventBus, this.layerManager, this.maskManager);
+        this.documentModel = new EasyCanvasDocument({ canvas: this.canvas, layerManager: this.layerManager });
+        this.cropController = new EasyCropController({
+            canvasView: this,
+            eventBus: this.eventBus,
+            container: this.container,
+            canvas: this.canvas,
+            layerManager: this.layerManager,
+            renderer: this.renderer,
+            documentModel: this.documentModel,
+        });
         this._previousCanvasBackgroundColor = '';
         this._drawModeWasActive = false;
 
@@ -74,7 +86,7 @@ export default class CanvasView {
     this.compareDragging = false;
     this.compareWipeX = null; // canvas-space position
 
-    // Mode tracking â€” used to scope generated-image overlay to the originating mode
+    // Mode tracking - used to scope generated-image overlay to the originating mode
     this._activeMode = 'advanced';
     this._generationOriginMode = null;
     this.eventBus.on('mode:changed', ({ mode }) => {
@@ -394,11 +406,6 @@ export default class CanvasView {
     // Recompute frame bounds on layer changes
     this.eventBus.on("layers:changed", () => this._maybeRecomputeFrameBounds());
     this.eventBus.on("layer:selected", () => this._maybeRecomputeFrameBounds());
-        // Crop events
-        this.eventBus.on("canvas:crop:start", () => this._startCrop());
-        this.eventBus.on("canvas:crop:cancel", () => this._cancelCrop());
-        this.eventBus.on("canvas:crop:apply", () => this._applyCrop());
-
         // Snap toggle (used by transform tools in renderer, and by crop here)
         this._snapEnabled = false;
         this._snapStep = 10;
@@ -613,6 +620,8 @@ export default class CanvasView {
                 // Recompute fit after container size/context changes
                 this._recomputeFitScale();
                 this._layoutResolutionFrame();
+                this.cropController?.refresh?.();
+                this.renderer.render?.();
                 this.renderer.requestRender?.();
             } catch (_e) {}
         };
@@ -641,12 +650,7 @@ export default class CanvasView {
                 if (this.compareWipeX == null) this.compareWipeX = Math.floor(this.canvas.width / 2);
                 this._renderCompareOverlay();
                 // If crop is active, reflow the crop rect to match new canvas scale/size
-                if (this._cropActive && this._cropRect && this._cropRectEl) {
-                    const r = this._cropRect;
-                    const a = { x: r.x, y: r.y };
-                    const b = { x: r.x + r.w, y: r.y + r.h };
-                    this._updateCropRect(a, b);
-                }
+                this.cropController?.refresh?.();
             } catch (_e) {}
         });
 
@@ -983,12 +987,8 @@ export default class CanvasView {
     }
 
     _syncDrawSurface(drawOnly) {
-        if (!this._previousCanvasBackgroundColor) {
-            this._previousCanvasBackgroundColor = this.canvas.style.backgroundColor || '';
-        }
-        const active = !!drawOnly;
-        this.canvas.classList.toggle('goya-main-canvas--draw-surface', active);
-        this.canvas.style.backgroundColor = active ? '#ffffff' : this._previousCanvasBackgroundColor;
+        this.canvas.classList.remove('goya-main-canvas--draw-surface');
+        this.renderer?.requestRender?.();
     }
 
     _sampleCompositeColor(x, y) {
@@ -1396,10 +1396,7 @@ export default class CanvasView {
         if (this._frameEnabled) this._layoutFrameRect();
         // keep resolution frame in sync
         this._layoutResolutionFrame();
-        if (this._cropActive && this._cropRect) {
-            const r = this._cropRect;
-            this._updateCropRect({ x: r.x, y: r.y }, { x: r.x + r.w, y: r.y + r.h });
-        }
+        this.cropController?.refresh?.();
         // Update liquify ring size/position
         if (this._liqRing && this._liqRing._radius) this._updateLiqRingSize(this._liqRing._radius);
     }
@@ -1410,7 +1407,7 @@ export default class CanvasView {
             const w = this.canvas.width || 1;
             const h = this.canvas.height || 1;
             Object.assign(this._resFrame.style, { left: '0px', top: '0px', width: `${w}px`, height: `${h}px` });
-            if (this._resFrameLabel) this._resFrameLabel.textContent = `${w} Ã— ${h}`;
+            if (this._resFrameLabel) this._resFrameLabel.textContent = `${w} x ${h}`;
         } catch (_e) { /* ignore */ }
     }
 
@@ -1481,189 +1478,6 @@ export default class CanvasView {
         this._layoutFrameRect();
     }
 
-    _startCrop() {
-        if (this._cropActive) return;
-        this._cropActive = true;
-        this.eventBus.emit("canvas:crop:state", { active: true });
-
-        this._cropOverlay = document.createElement("div");
-        this._cropOverlay.className = "goya-crop-overlay";
-        Object.assign(this._cropOverlay.style, {
-            position: "absolute",
-            inset: "0",
-            pointerEvents: "auto",
-            zIndex: "1000",
-            cursor: "crosshair",
-        });
-
-        this._cropRectEl = document.createElement("div");
-        this._cropRectEl.className = "goya-crop-rect";
-        this._cropOverlay.appendChild(this._cropRectEl);
-        this.container.appendChild(this._cropOverlay);
-
-        const onDown = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            let p = this._clientToCanvas(e.clientX, e.clientY);
-            if (this._snapEnabled) p = this._snapPoint(p);
-            this._cropStart = p;
-            this._updateCropRect(p, p);
-            window.addEventListener("mousemove", onMove);
-            window.addEventListener("mouseup", onUp);
-        };
-
-        const onMove = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if (!this._cropStart) return;
-            let p = this._clientToCanvas(e.clientX, e.clientY);
-            if (this._snapEnabled) p = this._snapPoint(p);
-            this._updateCropRect(this._cropStart, p);
-        };
-
-        const onUp = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            window.removeEventListener("mousemove", onMove);
-            window.removeEventListener("mouseup", onUp);
-        };
-
-        const onKey = (e) => {
-            if (e.key === "Escape") this._cancelCrop();
-            if (e.key === "Enter") this._applyCrop();
-        };
-
-        this._cropOverlay.addEventListener("mousedown", onDown);
-        this._cropOverlay._cleanup = () => {
-            this._cropOverlay.removeEventListener("mousedown", onDown);
-            window.removeEventListener("mousemove", onMove);
-            window.removeEventListener("mouseup", onUp);
-            window.removeEventListener("keydown", onKey);
-        };
-        window.addEventListener("keydown", onKey);
-
-        this._prevOverflow = this.container.style.overflow;
-        const fullA = { x: 0, y: 0 };
-        const fullB = { x: this.canvas.width, y: this.canvas.height };
-        this._updateCropRect(fullA, fullB);
-    }
-
-    _cancelCrop() {
-        if (!this._cropActive) return;
-        this._cropActive = false;
-        this.eventBus.emit("canvas:crop:state", { active: false });
-        // Restore overflow if we changed it for crop
-        try {
-            if (this._prevOverflow !== undefined) {
-                this.container.style.overflow = this._prevOverflow;
-                this._prevOverflow = undefined;
-            }
-        } catch (_e) {}
-        if (this._cropOverlay?._cleanup) this._cropOverlay._cleanup();
-        if (this._cropOverlay && this._cropOverlay.parentElement) this._cropOverlay.parentElement.removeChild(this._cropOverlay);
-        this._cropOverlay = null; this._cropRectEl = null; this._cropStart = null;
-    }
-
-    async _applyCrop() {
-        if (!this._cropActive || !this._cropRect) return;
-
-        const crop = this._normalizeCropRect(this._cropRect);
-        if (!crop || crop.w < 1 || crop.h < 1) {
-            this.eventBus.emit("status:message", "Crop ignored: empty selection");
-            this._cancelCrop();
-            return;
-        }
-
-        let croppedDataUrl = "";
-        try {
-            this.renderer?.render?.();
-            croppedDataUrl = this._cropCanvasDataUrl(crop);
-        } catch (error) {
-            console.warn("[CanvasView] crop failed", error);
-            this.eventBus.emit("status:message", `Crop failed: ${error?.message || error}`);
-            return;
-        }
-
-        if (!croppedDataUrl) {
-            this.eventBus.emit("status:message", "Crop failed: no image data");
-            return;
-        }
-
-        this._cancelCrop();
-        this._clearGeneratedViewState();
-        try { this.renderer?.clearTransientState?.(); } catch (_e) {}
-        try { this.renderer?.imageCache?.clear?.(); } catch (_e) {}
-        try { this.renderer?.maskCache?.clear?.(); } catch (_e) {}
-        try { this.layerManager.snapshot?.(); } catch (_e) {}
-
-        this.resize(crop.w, crop.h);
-        this.layerManager.bootstrapDefaultLayers?.({ reset: true });
-
-        const layer = this.layerManager.addLayer?.("Cropped Image");
-        if (layer?.id) {
-            this.layerManager.updateLayer?.({
-                id: layer.id,
-                announce: false,
-                patch: {
-                    name: "Cropped Image",
-                    bitmap: croppedDataUrl,
-                    mask: "",
-                    visible: true,
-                    locked: false,
-                    opacity: 1,
-                    blendMode: "normal",
-                    metadata: {
-                        source: { type: "crop", mode: "easy-crop" },
-                        originalWidth: crop.w,
-                        originalHeight: crop.h,
-                        transform: { dx: 0, dy: 0, sx: 1, sy: 1, angle: 0 },
-                        easyRole: "import",
-                    },
-                },
-            });
-            this._primeLayerImageCache(layer.id, croppedDataUrl);
-            this.layerManager.selectLayer?.(layer.id);
-        }
-
-        try { this.renderer?._syncImageCache?.(this.layerManager.getLayers?.() || []); } catch (_e) {}
-        try { this.renderer?.render?.(); } catch (_e) {}
-        try { this.renderer?._requestRender?.(); } catch (_e) {}
-
-        this.eventBus.emit("canvas:image:detected", { width: crop.w, height: crop.h });
-        this.eventBus.emit("workflow:params:changed", { immediate: true });
-        this.eventBus.emit("canvas:export:composite", { reason: "crop" });
-        this.eventBus.emit("easy:generation:reset", { reason: "crop" });
-        this.eventBus.emit("status:message", `Cropped canvas to ${crop.w}x${crop.h}`);
-    }
-
-    _normalizeCropRect(rect) {
-        const x1 = Math.max(0, Math.min(this.canvas.width, Math.floor(Number(rect?.x) || 0)));
-        const y1 = Math.max(0, Math.min(this.canvas.height, Math.floor(Number(rect?.y) || 0)));
-        const x2 = Math.max(0, Math.min(this.canvas.width, Math.floor((Number(rect?.x) || 0) + (Number(rect?.w) || 0))));
-        const y2 = Math.max(0, Math.min(this.canvas.height, Math.floor((Number(rect?.y) || 0) + (Number(rect?.h) || 0))));
-        const left = Math.min(x1, x2);
-        const top = Math.min(y1, y2);
-        const right = Math.max(x1, x2);
-        const bottom = Math.max(y1, y2);
-        return {
-            x: left,
-            y: top,
-            w: Math.max(1, right - left),
-            h: Math.max(1, bottom - top),
-        };
-    }
-
-    _cropCanvasDataUrl(rect) {
-        const out = document.createElement("canvas");
-        out.width = rect.w;
-        out.height = rect.h;
-        const ctx = out.getContext("2d", { willReadFrequently: true });
-        if (!ctx) return "";
-        ctx.clearRect(0, 0, out.width, out.height);
-        ctx.drawImage(this.canvas, rect.x, rect.y, rect.w, rect.h, 0, 0, rect.w, rect.h);
-        return out.toDataURL("image/png");
-    }
-
     _primeLayerImageCache(layerId, dataUrl) {
         if (!layerId || !dataUrl) return;
         try {
@@ -1690,22 +1504,6 @@ export default class CanvasView {
             this.compareOverlay.style.pointerEvents = 'none';
             const overlayCtx = this.compareOverlay.getContext?.('2d');
             overlayCtx?.clearRect?.(0, 0, this.compareOverlay.width, this.compareOverlay.height);
-        }
-    }
-
-    _cropDataUrl(src, rect) {
-
-        try {
-            const img = new Image();
-            img.src = src;
-            // Note: if not immediately complete, this will still return empty; keep simple sync path
-            const c = document.createElement("canvas"); c.width = rect.w; c.height = rect.h;
-            const ctx = c.getContext("2d");
-            // Draw portion
-            ctx.drawImage(img, -rect.x, -rect.y);
-            return c.toDataURL("image/png");
-        } catch (_e) {
-            return src;
         }
     }
 
@@ -1781,31 +1579,6 @@ export default class CanvasView {
         }
     }
 
-    _updateCropRect(a, b) {
-        const x1 = Math.min(a.x, b.x);
-        const y1 = Math.min(a.y, b.y);
-        const x2 = Math.max(a.x, b.x);
-        const y2 = Math.max(a.y, b.y);
-        const w = Math.max(1, Math.floor(x2 - x1));
-        const h = Math.max(1, Math.floor(y2 - y1));
-        this._cropRect = { x: Math.floor(x1), y: Math.floor(y1), w, h };
-        // Position from the real transformed canvas box so crop stays aligned with zoom/pan.
-        const canvasRect = this.canvas.getBoundingClientRect();
-        const hostRect = this.container.getBoundingClientRect();
-        const scaleX = canvasRect.width / Math.max(1, this.canvas.width);
-        const scaleY = canvasRect.height / Math.max(1, this.canvas.height);
-        const left = (canvasRect.left - hostRect.left) + this._cropRect.x * scaleX;
-        const top = (canvasRect.top - hostRect.top) + this._cropRect.y * scaleY;
-        Object.assign(this._cropRectEl.style, {
-            left: `${left}px`,
-            top: `${top}px`,
-            width: `${w * scaleX}px`,
-            height: `${h * scaleY}px`,
-        });
-        // emit live
-        this.eventBus.emit("canvas:crop:rect", { rect: Object.assign({}, this._cropRect) });
-    }
-
     _clientToCanvas(clientX, clientY, opts = {}) {
         const { unclamped = false } = opts || {};
         const rect = this.canvas.getBoundingClientRect();
@@ -1871,7 +1644,7 @@ export default class CanvasView {
         ta.addEventListener('dragenter', swallow, true);
         ta.addEventListener('dragover', swallow, true);
         ta.addEventListener('drop', (e) => { e.preventDefault(); swallow(e); }, true);
-        // Allow scrolling inside textarea, but donâ€™t let it zoom/pan the canvas.
+        // Allow scrolling inside textarea, but do not let it zoom/pan the canvas.
         ta.addEventListener('wheel', swallow, { passive: true });
 
         this.container.appendChild(ta);

@@ -1,4 +1,4 @@
-await import("/iamccs/goyai_easy_static/index.js?v=20260629_EASY_CROP_DISABLED01");
+await import("/iamccs/goyai_easy_static/index.js?v=20260630_EASY_CLEAN_CORE26");
 
 try {
     window.__IAMCCS_RUNTIME_DIAGNOSTICS__ = {
