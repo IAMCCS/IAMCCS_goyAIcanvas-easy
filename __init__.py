@@ -13,8 +13,9 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "IAMCCS_goyAIcanvas-easy": "IAMCCS_goyAIcanvas-easy (legacy compat)",
 }
 
-WEB_DIRECTORY = "web_entry"
+WEB_DIRECTORY = "web"
 
 __all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS", "WEB_DIRECTORY"]
 
 print("[IAMCCS_goyAIcanvas-easy] standalone Easy node loaded")
+

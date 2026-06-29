@@ -1,137 +1,32 @@
 import EventBus from "./utils/EventBus.js";
-import CommandBus from "./core/CommandBus.js";
-import { registerPromptCommands } from "./core/PromptCommandAdapter.js";
-import { registerModeActionCommands } from "./core/ModeActionCommandAdapter.js?v=20260504_prompt_strict_lora_assistant01";
 import Constants from "./utils/Constants.js";
-import { easyApiUrl } from "./utils/EasyApi.js?v=20260627_EASY_DRAW_BEFORE_COLOR01";
-import FileIO from "./utils/FileIO.js";
-import CanvasView from "./ui/Canvas.js?v=20260627_EASY_GENERATE_RESET01";
-import ToolsPanel from "./ui/ToolsPanel.js?v=20260627_EASY_RESIZE_PERSIST01";
-import LayersPanel from "./ui/LayersPanel.js";
-import GlobalPromptPanel from "./ui/GlobalPromptPanel.js";
-import ImagingControls from "./ui/ImagingControls.js?v=20260505_COLOR_SLIDER_DEBOUNCE01";
-import GalleryPanel from "./ui/GalleryPanel.js";
-import CanvasToolbar from "./ui/CanvasToolbar.js?v=20260626_EASY_INPAINT_CANVAS01";
-import StatusBar from "./ui/StatusBar.js?v=20260626_EASY_INPAINT_CANVAS01";
-import ExportPanel from "./ui/ExportPanel.js";
-import LayerManager from "./engine/LayerManager.js";
-import MaskManager from "./engine/MaskManager.js?v=20260626_EASY_INPAINT_CANVAS01";
-import ToolController from "./engine/ToolController.js";
-import GimpToolKernel from "./engine/GimpToolKernel.js";
-import PromptManager from "./engine/PromptManager.js";
-import QwenEngineBridge from "./engine/QwenEngineBridge.js";
-import WorkflowRunner from "./engine/WorkflowRunner.js?v=20260627_EASY_GENERATE_RESET01";
-import EasySettingsPanel from "./modes/easy/EasySettingsPanel.js?v=20260626_EASY_FINAL_POLISH01";
+import CanvasView from "./ui/Canvas.js?v=20260629_EASY_CROP_DISABLED01";
+import CanvasToolbar from "./ui/CanvasToolbar.js?v=20260629_EASY_CROP_DISABLED01";
+import StatusBar from "./ui/StatusBar.js?v=20260629_EASY_CROP_DISABLED01";
+import EasyLayerManager from "./engine/EasyLayerManager.js?v=20260629_EASY_CROP_DISABLED01";
+import EasyMaskManager from "./engine/EasyMaskManager.js?v=20260629_EASY_CROP_DISABLED01";
+import EasyPromptManager from "./engine/EasyPromptManager.js?v=20260629_EASY_CROP_DISABLED01";
+import EasyStateBridge from "./engine/EasyStateBridge.js?v=20260629_EASY_CROP_DISABLED01";
+import WorkflowRunner from "./engine/WorkflowRunner.js?v=20260629_EASY_CROP_DISABLED01";
+import EasySettingsPanel from "./modes/easy/EasySettingsPanel.js?v=20260629_EASY_CROP_DISABLED01";
 import UIHelpers from "./utils/UIHelpers.js";
-import { MeterSlider, RGBMeterGroup } from "./components/MeterSlider.js";
-import MxSlider from "./components/MxSlider.js";
-import ModeSwitchBar from "./modes/ModeSwitchBar.js?v=20260627_EASY_RESIZE_PERSIST01";
-import LayoutRouter from "./modes/LayoutRouter.js?v=20260627_EASY_RESIZE_PERSIST01";
-import { GOYA_BUILD_INFO, getGoyaBuildLabel } from "./app/BuildInfo.js?v=20260627_EASY_DRAW_AS_I2I01";
+import ModeSwitchBar from "./modes/ModeSwitchBar.js?v=20260629_EASY_CROP_DISABLED01";
+import LayoutRouter from "./modes/LayoutRouter.js?v=20260629_EASY_CROP_DISABLED01";
+import { GOYA_BUILD_INFO, getGoyaBuildLabel } from "./app/BuildInfo.js?v=20260629_EASY_CROP_DISABLED01";
 
-// Esporta globalmente per usare nei pannelli
-window.GoyaMeterSlider = MeterSlider;
-window.GoyaRGBMeterGroup = RGBMeterGroup;
-window.GoyaMxSlider = MxSlider;
-
-const STYLESHEET_URL = new URL("./style.css", import.meta.url).href + "?v=20260609_STRUCT_MODE_REGISTRY01";
-const METER_SLIDERS_CSS_URL = new URL("./styles/meter-sliders.css", import.meta.url).href;
-const THEMES_CSS_URL = new URL("./styles/themes.css", import.meta.url).href;
-const ADVANCED_PRO_CSS_URL = new URL("./styles/advanced_professional.css", import.meta.url).href + "?v=20260609_ADV_UI_REF05";
-const MODES_LAYOUT_CSS_URL = new URL("./styles/modes_layout.css", import.meta.url).href + "?v=20260627_EASY_MOUNT_PARITY01";
-const EASY_MODE_CSS_URL = new URL("./styles/easy_mode.css", import.meta.url).href + "?v=20260627_EASY_MOUNT_PARITY01";
-const VIDEO_MODE_CSS_URL = new URL("./styles/video_mode.css", import.meta.url).href + "?v=20260608_RESCUE_MODE_ALLOWLIST01";
-const VISUAL_MODE_CSS_URL = new URL("./styles/visual_mode.css", import.meta.url).href + "?v=20260608_RESCUE_MODE_ALLOWLIST01";
-const SIMULACRA_MODE_CSS_URL = new URL("./styles/simulacra_mode.css", import.meta.url).href + "?v=20260505_VISION_MINI_VIDEO01";
-const SIMULACRA_PRODUCER_MODE_CSS_URL = new URL("./styles/simulacra_producer_mode.css", import.meta.url).href + "?v=20260522_PRODUCER_SHOTBOARD_V3_MAIN24";
-const ORCHESTRATOR_MODE_CSS_URL = new URL("./styles/orchestrator_mode.css", import.meta.url).href + "?v=20260410_ORCH_ASR_FIX04";
-const GOYAVIDEO_EDITOR_CSS_URL = new URL("./styles/goyavideo_editor.css", import.meta.url).href;
-const VISUAL_SPHERES_CSS_URL = new URL("./styles/visual_spheres.css", import.meta.url).href;
-const NODE_PREVIEW_CSS_URL = new URL("./styles/node_preview.css", import.meta.url).href + "?v=20260627_EASY_DIALOG_HEADER_EDGE01";
-const EASY_STATE_SCHEMA = "iamccs.goyai.easy.state";
+const EASY_MODE_CSS_URL = new URL("./styles/easy_mode.css", import.meta.url).href + "?v=20260629_EASY_CROP_DISABLED01";
+const NODE_PREVIEW_CSS_URL = new URL("./styles/node_preview.css", import.meta.url).href + "?v=20260629_EASY_CROP_DISABLED01";const EASY_STATE_SCHEMA = "iamccs.goyai.easy.state";
 const EASY_STATE_BUILD = "IAMCCS_GoyAIcanvas_EasyFull_AllInOne_State_20260626";
 let stylesheetInjected = false;
 
 function ensureStylesheet() {
-    if (stylesheetInjected) {
-        return;
+    if (stylesheetInjected) return;
+    for (const href of [EASY_MODE_CSS_URL, NODE_PREVIEW_CSS_URL]) {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = href;
+        document.head.append(link);
     }
-    // Main stylesheet
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = STYLESHEET_URL;
-    document.head.append(link);
-    
-    // Meter sliders CSS
-    const meterLink = document.createElement("link");
-    meterLink.rel = "stylesheet";
-    meterLink.href = METER_SLIDERS_CSS_URL;
-    document.head.append(meterLink);
-    
-    // Themes CSS
-    const themesLink = document.createElement("link");
-    themesLink.rel = "stylesheet";
-    themesLink.href = THEMES_CSS_URL;
-    document.head.append(themesLink);
-
-    // Modes CSS (EASY / ADVANCED / VIDEO / VISUAL)
-    const modesLayoutLink = document.createElement("link");
-    modesLayoutLink.rel = "stylesheet";
-    modesLayoutLink.href = MODES_LAYOUT_CSS_URL;
-    document.head.append(modesLayoutLink);
-
-    const easyModeLink = document.createElement("link");
-    easyModeLink.rel = "stylesheet";
-    easyModeLink.href = EASY_MODE_CSS_URL;
-    document.head.append(easyModeLink);
-
-    const videoModeLink = document.createElement("link");
-    videoModeLink.rel = "stylesheet";
-    videoModeLink.href = VIDEO_MODE_CSS_URL;
-    document.head.append(videoModeLink);
-
-    const visualModeLink = document.createElement("link");
-    visualModeLink.rel = "stylesheet";
-    visualModeLink.href = VISUAL_MODE_CSS_URL;
-    document.head.append(visualModeLink);
-
-    const simulacraModeLink = document.createElement("link");
-    simulacraModeLink.rel = "stylesheet";
-    simulacraModeLink.href = SIMULACRA_MODE_CSS_URL;
-    document.head.append(simulacraModeLink);
-
-    const simulacraProducerModeLink = document.createElement("link");
-    simulacraProducerModeLink.rel = "stylesheet";
-    simulacraProducerModeLink.href = SIMULACRA_PRODUCER_MODE_CSS_URL;
-    document.head.append(simulacraProducerModeLink);
-
-    const orchestratorModeLink = document.createElement("link");
-    orchestratorModeLink.rel = "stylesheet";
-    orchestratorModeLink.href = ORCHESTRATOR_MODE_CSS_URL;
-    document.head.append(orchestratorModeLink);
-
-    // GoyaVideo + Visual Spheres CSS (Phase 1 extensions)
-    const goyavideoEditorLink = document.createElement("link");
-    goyavideoEditorLink.rel = "stylesheet";
-    goyavideoEditorLink.href = GOYAVIDEO_EDITOR_CSS_URL;
-    document.head.append(goyavideoEditorLink);
-
-    const visualSpheresLink = document.createElement("link");
-    visualSpheresLink.rel = "stylesheet";
-    visualSpheresLink.href = VISUAL_SPHERES_CSS_URL;
-    document.head.append(visualSpheresLink);
-
-    // Node preview CSS (logo â†’ dialog)
-    const nodePreviewLink = document.createElement("link");
-    nodePreviewLink.rel = "stylesheet";
-    nodePreviewLink.href = NODE_PREVIEW_CSS_URL;
-    document.head.append(nodePreviewLink);
-
-    const advancedProLink = document.createElement("link");
-    advancedProLink.rel = "stylesheet";
-    advancedProLink.href = ADVANCED_PRO_CSS_URL;
-    document.head.append(advancedProLink);
-    
     stylesheetInjected = true;
 }
 
@@ -231,7 +126,7 @@ function buildLayout(nodeId) {
         const leftRail = UIHelpers.createElement("div", "goya-side-rail goya-side-rail--left");
         const rightRail = UIHelpers.createElement("div", "goya-side-rail goya-side-rail--right");
         const makeRail = (railEl, items) => {
-            const toggle = UIHelpers.createElement("div", "goya-side-rail__toggle", { text: "â‰¡" });
+            const toggle = UIHelpers.createElement("div", "goya-side-rail__toggle", { text: "Ã¢â€°Â¡" });
             toggle.title = "Mostra/Nascondi";
             let open = true;
             toggle.addEventListener("click", () => {
@@ -380,7 +275,7 @@ export default class IAMCCS_EasyFullNodeUI {
         imgElement.src = logoPath;
         
         imgElement.onload = () => {
-            console.log("[IAMCCS Preview] âœ… Image loaded successfully:", logoPath);
+            console.log("[IAMCCS Preview] Ã¢Å“â€¦ Image loaded successfully:", logoPath);
         };
         
         imgElement.onerror = (e) => {
@@ -390,7 +285,7 @@ export default class IAMCCS_EasyFullNodeUI {
                 imgElement.src = nextPath;
                 return;
             }
-            console.error("[IAMCCS Preview] âŒ Image failed to load:", logoPath);
+            console.error("[IAMCCS Preview] Ã¢ÂÅ’ Image failed to load:", logoPath);
             console.error("[IAMCCS Preview] Error details:", e);
             // Add visible error message
             imgElement.style.display = "none";
@@ -499,7 +394,7 @@ export default class IAMCCS_EasyFullNodeUI {
                 <header class="iamccs-editor-header">
                     <div class="iamccs-editor-title">
                         <img src="${logoPath}" alt="Goya Canvas" />
-                        <span>patreon.com/IAMCCS &middot; goyAIcanvas EASY</span>
+                        <span>patreon.com/IAMCCS - goyAIcanvas EASY</span>
                     </div>
                     <div class="iamccs-editor-center-actions" aria-label="Easy editor actions"></div>
                     <div class="iamccs-editor-actions">
@@ -796,83 +691,38 @@ export default class IAMCCS_EasyFullNodeUI {
         targetContainer.append(container);
 
         this.eventBus = new EventBus();
-        this.commandBus = new CommandBus(this.eventBus);
-        this.layerManager = new LayerManager(this.eventBus);
-        this.maskManager = new MaskManager(this.eventBus, this.layerManager);
-        const nativeMaskOverlayStyle = this.maskManager.getLayerMaskOverlayStyle?.bind(this.maskManager);
-        if (nativeMaskOverlayStyle) {
-            this.maskManager.getLayerMaskOverlayStyle = (layerId) => {
-                if (this.maskManager.isPaintToMask?.()) {
-                    return this.maskManager.getOverlayStyle?.() || { color: 'rgba(255, 59, 59, 0.42)' };
-                }
-                return nativeMaskOverlayStyle(layerId);
-            };
-        }
-        this.toolController = new ToolController(this.eventBus, this.maskManager);
-        this.promptManager = new PromptManager(this.eventBus, this.layerManager);
-        this.bridge = new QwenEngineBridge(this.eventBus);
-    this.workflowRunner = new WorkflowRunner(this.eventBus, this.bridge, this.layerManager, this.promptManager, this.maskManager);
+        this.layerManager = new EasyLayerManager(this.eventBus, { width: this.canvasWidth, height: this.canvasHeight });
+        this.maskManager = new EasyMaskManager(this.eventBus, this.layerManager);
+        this.toolController = {
+            setTool: (tool) => this.eventBus.emit("tool:change", tool),
+            getActiveTool: () => this.maskManager?.activeTool || "cursor",
+        };
+        this.promptManager = new EasyPromptManager(this.eventBus);
+        this.bridge = new EasyStateBridge(this.eventBus);
+        this.commandBus = null;
+        this.gimpToolKernel = null;
+        this.workflowRunner = new WorkflowRunner(this.eventBus, this.bridge, this.layerManager, this.promptManager, this.maskManager);
+        this.unsubscribe.push(
+            this.eventBus.on("canvas:import:files", (payload = {}) => this._handleEasyCanvasImportFiles(payload))
+        );
 
-        let initialMode = 'advanced';
-        try {
-            const savedMode = String(localStorage.getItem('goya:lastMode') || '').trim();
-            if (savedMode === 'easy' || savedMode === 'advanced') {
-                initialMode = savedMode;
-            } else if (savedMode) {
-                localStorage.setItem('goya:lastMode', 'advanced');
-            }
-        } catch (_e) {}
-
+        const initialMode = "easy";
         try {
             window.__IAMCCS_RUNTIME_DIAGNOSTICS__ = {
                 ...(window.__IAMCCS_RUNTIME_DIAGNOSTICS__ || {}),
-                activeBootstrap: 'IAMCCS_EasyFullNodeUI',
+                activeBootstrap: "IAMCCS_EasyFullNodeUI",
                 buildInfo: GOYA_BUILD_INFO,
                 buildLabel: getGoyaBuildLabel(),
                 initialMode,
             };
         } catch (_e) {}
 
-        const setAdvancedChrome = (mode = 'advanced') => {
-            const isAdvanced = String(mode || 'advanced').trim() === 'advanced';
-            layout.root?.classList.toggle('goya-advanced-pro', isAdvanced);
-            layout.toolbarHost?.classList.toggle('goya-advanced-tools-rail', isAdvanced);
-            layout.panelsHost?.classList.toggle('goya-advanced-inspector', isAdvanced);
-            if (isAdvanced) {
-                layout.toolbarHost?.setAttribute('aria-label', 'Advanced tool rail');
-                layout.panelsHost?.setAttribute('aria-label', 'Advanced inspector');
-            }
-        };
-        setAdvancedChrome(initialMode);
-
-        // Mode switcher (EASY | ADVANCED | VIDEO | VISUAL)
         this.modeSwitchBar = new ModeSwitchBar(layout.modeSwitchHost, this.eventBus, initialMode);
-
         this.canvasView = new CanvasView(layout.canvasWrapper, this.eventBus, this.layerManager, this.maskManager);
-        this.gimpToolKernel = new GimpToolKernel(this.eventBus, {
-            layerManager: this.layerManager,
-            maskManager: this.maskManager,
-            toolController: this.toolController,
-            canvasView: this.canvasView,
-        });
-        new ToolsPanel(layout.toolbarHost, this.eventBus, this.layerManager, this.toolController);
-        this.canvasToolbar = new CanvasToolbar(
-            layout.topbarControls,
-            this.eventBus,
-            this.layerManager,
-            this.bridge,
-            this.workflowRunner
-        );
-    new LayersPanel(layout.panelsHost, this.eventBus, this.layerManager, this.promptManager, this.maskManager);
-    // Place Gallery above Sampling Module per spec
-    new GalleryPanel(layout.panelsHost, this.eventBus, this.layerManager);
-    new GlobalPromptPanel(layout.panelsHost, this.eventBus, this.promptManager);
-        new ImagingControls(layout.panelsHost, this.eventBus, this.workflowRunner);
-        // Pass workflowRunner so ExportPanel can include runtime params
-        new ExportPanel(layout.panelsHost, this.eventBus, this.layerManager, this.promptManager, FileIO, this.workflowRunner);
+        this.canvasToolbar = new CanvasToolbar(layout.topbarControls, this.eventBus, this.layerManager, this.bridge, this.workflowRunner);
         new StatusBar(layout.statusHost, this.eventBus, this.canvasView, this.layerManager, this.promptManager);
 
-        layout.footer.textContent = "GOYAICANVAS, multi visual editor AI motorized by Carmine Critallo Scalzi";
+        layout.footer.textContent = "goyAIcanvas EASY";
 
     this.layerManager.bootstrapDefaultLayers();
     this.canvasView.resize(this.canvasWidth, this.canvasHeight);
@@ -890,9 +740,9 @@ export default class IAMCCS_EasyFullNodeUI {
             promptManager: this.promptManager,
             qwenBridge: this.bridge,
             workflowRunner: this.workflowRunner,
-            commandBus: this.commandBus,
+            commandBus: null,
             canvasView: this.canvasView,
-            gimpToolKernel: this.gimpToolKernel,
+            gimpToolKernel: null,
             canvasWrapper: layout.canvasWrapper,
             canvasArea: layout.canvasArea,
             toolbarHost: layout.toolbarHost,
@@ -909,14 +759,12 @@ export default class IAMCCS_EasyFullNodeUI {
         try {
             this.eventBus.on('mode:changed', (data) => {
                 const mode = String(data?.mode || '').trim();
-                if (!mode) return;
-                setAdvancedChrome(mode);
-                try { localStorage.setItem('goya:lastMode', mode); } catch (_e) {}
+                if (!mode) return;                try { localStorage.setItem('goya:lastMode', mode); } catch (_e) {}
             });
         } catch (_e) {}
 
         // Ensure restored mode is mounted
-        try { this.layoutRouter.switchMode(initialMode); } catch (_e) { this.layoutRouter.switchMode('advanced'); }
+        try { this.layoutRouter.switchMode("easy"); } catch (_e) {}
 
         try {
             this.easySettingsPanel = new EasySettingsPanel(
@@ -1002,7 +850,7 @@ export default class IAMCCS_EasyFullNodeUI {
             })
         );
 
-        // Advanced File dropdown (ToolsPanel) â†’ real actions
+        // Advanced File dropdown (ToolsPanel) Ã¢â€ â€™ real actions
         this._attachAdvancedFileHandlers();
 
         this.unsubscribe.push(
@@ -1183,7 +1031,7 @@ export default class IAMCCS_EasyFullNodeUI {
             })
         );
 
-        // Video â†’ FIELD / AI bridge actions
+        // Video Ã¢â€ â€™ FIELD / AI bridge actions
         this.unsubscribe.push(
             this.eventBus.on('video:clip:efx-to-sphere', (payload) => this._handleVideoEfxToField(payload))
         );
@@ -1204,7 +1052,7 @@ export default class IAMCCS_EasyFullNodeUI {
             })
         );
 
-        // FIELD â†’ Video return actions
+        // FIELD Ã¢â€ â€™ Video return actions
         this.unsubscribe.push(
             this.eventBus.on('visual:efx:export-return', (payload) => this._handleVisualEfxExportReturn(payload))
         );
@@ -1425,7 +1273,7 @@ export default class IAMCCS_EasyFullNodeUI {
                     const ne = visual?.nodeEditor;
                     if (ne?.applyFrameImageGraph) {
                         ne.applyFrameImageGraph({ dataUrl, name: "Advanced Export" });
-                        try { visual.showReturnBanner?.({ mode: "advanced", text: "ADVANCED â†’ FIELD" }); } catch (_e) {}
+                        try { visual.showReturnBanner?.({ mode: "advanced", text: "ADVANCED Ã¢â€ â€™ FIELD" }); } catch (_e) {}
                     }
                 }, 60);
             })
@@ -1500,6 +1348,117 @@ export default class IAMCCS_EasyFullNodeUI {
             })
         );
     }
+
+    async _handleEasyCanvasImportFiles(payload = {}) {
+        if (!payload || payload.__easyImportHandled) return;
+        payload.__easyImportHandled = true;
+        const files = Array.from(payload?.files || []).filter(Boolean);
+        const file = files.find((entry) => String(entry?.type || "").startsWith("image/")) || files[0];
+        if (!file) return;
+        try {
+            console.log("[GoyaEasyImport] import requested", {
+                name: file.name || "image",
+                type: file.type || "",
+                size: file.size || 0,
+                source: payload?.source || "easy-import",
+                replace: payload?.replace !== false,
+            });
+            const dataUrl = await this._readImageFileAsDataUrl(file);
+            const info = await this._decodeImageSize(dataUrl);
+            const sourceCanvas = this._makeCanvasFromDecodedImage(info.image, info.width, info.height);
+            const shouldReplace = payload?.replace !== false;
+            if (shouldReplace) {
+                this.layerManager?.bootstrapDefaultLayers?.({ reset: true });
+            }
+            const layer = this._importDataUrlAsNewLayer(dataUrl, file.name || "Imported Image", {
+                source: {
+                    type: "import",
+                    name: file.name || "image",
+                    mode: payload?.source || "easy-import",
+                },
+                originalWidth: info.width,
+                originalHeight: info.height,
+                easyRole: "import",
+            });
+            if (!layer) throw new Error("Layer creation failed");
+            this.canvasWidth = info.width;
+            this.canvasHeight = info.height;
+            if (this.workflowRunner) {
+                this.workflowRunner.canvasWidth = info.width;
+                this.workflowRunner.canvasHeight = info.height;
+            }
+            this.canvasView?.resize?.(info.width, info.height);
+            try {
+                this.canvasView?.renderer?._updateBitmapLayerFromDataUrl?.(layer.id, dataUrl, sourceCanvas);
+                this.canvasView?.renderer?._syncImageCache?.(this.layerManager?.getLayers?.() || []);
+                this.canvasView?.renderer?._requestRender?.();
+            } catch (renderError) {
+                console.warn("[GoyaEasyImport] renderer cache update failed", renderError);
+            }
+            this.layerManager?.selectLayer?.(layer.id);
+            setTimeout(() => {
+                try {
+                    this.canvasView?.renderer?._syncImageCache?.(this.layerManager?.getLayers?.() || []);
+                    this.canvasView?.renderer?._requestRender?.();
+                } catch (_e) {}
+            }, 0);
+            this.eventBus.emit("canvas:image:imported", {
+                originalWidth: info.width,
+                originalHeight: info.height,
+                layerId: layer.id,
+                name: file.name || null,
+                source: payload?.source || "easy-import",
+            });
+            this.eventBus.emit("canvas:refresh", { reason: "easy-import" });
+            this.eventBus.emit("canvas:export:composite", { reason: "easy-import" });
+            this.eventBus.emit("workflow:params:changed", { immediate: true });
+            this.eventBus.emit("status:message", `Imported ${file.name || "image"} (${info.width}x${info.height})`);
+            console.log("[GoyaEasyImport] import applied", { layerId: layer.id, width: info.width, height: info.height });
+            this._persistState();
+        } catch (error) {
+            console.error("[GoyaEasyImport] import failed", error);
+            this.eventBus.emit("status:message", `Import failed: ${error?.message || error}`);
+        }
+    }
+
+    _readImageFileAsDataUrl(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result || ""));
+            reader.onerror = () => reject(reader.error || new Error("FileReader failed"));
+            reader.readAsDataURL(file);
+        });
+    }
+
+    _decodeImageSize(dataUrl) {
+        return new Promise((resolve, reject) => {
+            const image = new Image();
+            image.onload = () => {
+                const width = Number(image.naturalWidth || image.width || 0);
+                const height = Number(image.naturalHeight || image.height || 0);
+                if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+                    reject(new Error("Unable to read imported image dimensions"));
+                    return;
+                }
+                resolve({ width, height, image });
+            };
+            image.onerror = () => reject(new Error("Unable to decode imported image"));
+            image.src = dataUrl;
+        });
+    }
+
+    _makeCanvasFromDecodedImage(image, width, height) {
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(width || image?.naturalWidth || image?.width || 1));
+        canvas.height = Math.max(1, Math.round(height || image?.naturalHeight || image?.height || 1));
+        const ctx = canvas.getContext("2d", { desynchronized: true });
+        if (!ctx || !image) return canvas;
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+        return canvas;
+    }
+
 
     _registerCoreCommands() {
         if (!this.commandBus || this._coreCommandsRegistered) return;
@@ -1643,7 +1602,8 @@ export default class IAMCCS_EasyFullNodeUI {
     _replaceCanvasWithDataUrlLayer(dataUrl, name, meta = {}) {
         if (!dataUrl || typeof dataUrl !== "string") return null;
         try {
-            this.layerManager?.bootstrapDefaultLayers?.();
+            this.layerManager?.bootstrapDefaultLayers?.({ reset: true });
+            try { this.canvasView?.renderer?.imageCache?.clear?.(); } catch (_e) {}
             const layer = this._importDataUrlAsNewLayer(dataUrl, name || "Resized Image", {
                 ...(meta || {}),
                 source: {
@@ -1651,6 +1611,10 @@ export default class IAMCCS_EasyFullNodeUI {
                     ...(meta?.source || {}),
                 },
             });
+            if (layer) {
+                try { this.canvasView?.renderer?._updateBitmapLayerFromDataUrl?.(layer.id, dataUrl); } catch (_e) {}
+                try { this.layerManager?.selectLayer?.(layer.id); } catch (_e) {}
+            }
             this.eventBus.emit("canvas:refresh", {});
             this.eventBus.emit("workflow:params:changed", { immediate: true });
             return layer;
@@ -1706,7 +1670,7 @@ export default class IAMCCS_EasyFullNodeUI {
             }
 
             try {
-                visual.showReturnBanner?.({ mode: 'video', text: 'VIDEO â†’ FIELD (EFX)' });
+                visual.showReturnBanner?.({ mode: 'video', text: 'VIDEO Ã¢â€ â€™ FIELD (EFX)' });
             } catch (_e) {}
         } catch (e) {
             console.warn('[IAMCCS] video:clip:efx-to-sphere handler failed', e);
@@ -1793,7 +1757,7 @@ export default class IAMCCS_EasyFullNodeUI {
                     const versionClip = {
                         ...(sourceClip || {}),
                         id: `clip_${Date.now()}`,
-                        name: `${sourceClip?.name || node.label || node.type || 'FIELD Return'} Â· variant`,
+                        name: `${sourceClip?.name || node.label || node.type || 'FIELD Return'} Ã‚Â· variant`,
                         type: 'video',
                         media_type: 'video',
                         srcUrl: dataUrl,
@@ -1825,7 +1789,7 @@ export default class IAMCCS_EasyFullNodeUI {
                         exportTarget: 'canvas_view',
                     },
                 };
-                const layer = this._importDataUrlAsNewLayer(dataUrl, `${node.label || node.type} Â· FIELD`, meta);
+                const layer = this._importDataUrlAsNewLayer(dataUrl, `${node.label || node.type} Ã‚Â· FIELD`, meta);
                 if (layer && width > 0 && height > 0) {
                     this.eventBus.emit('canvas:image:imported', {
                         name: node.label || node.type || null,
@@ -1863,7 +1827,7 @@ export default class IAMCCS_EasyFullNodeUI {
                 },
             };
 
-            this._importDataUrlAsNewLayer(cap.dataUrl, `${clip.name || 'Clip'} Â· frame`, meta);
+            this._importDataUrlAsNewLayer(cap.dataUrl, `${clip.name || 'Clip'} Ã‚Â· frame`, meta);
             this.eventBus.emit('canvas:image:imported', {
                 name: clip.name || null,
                 originalWidth: cap.width,
@@ -1892,14 +1856,14 @@ export default class IAMCCS_EasyFullNodeUI {
             try {
                 visual.nodeEditor.applyFrameImageGraph({
                     dataUrl: cap.dataUrl,
-                    name: `${clip.name || 'Clip'} Â· frame`,
+                    name: `${clip.name || 'Clip'} Ã‚Â· frame`,
                 });
             } catch (e) {
-                console.warn('[IAMCCS] Failed to build Frameâ†’FIELD graph', e);
+                console.warn('[IAMCCS] Failed to build FrameÃ¢â€ â€™FIELD graph', e);
             }
 
             try {
-                visual.showReturnBanner?.({ mode: 'video', text: 'VIDEO â†’ FIELD (Frame)' });
+                visual.showReturnBanner?.({ mode: 'video', text: 'VIDEO Ã¢â€ â€™ FIELD (Frame)' });
             } catch (_e) {}
         } catch (e) {
             console.warn('[IAMCCS] video:clip:frame-to-sphere handler failed', e);
@@ -2288,7 +2252,7 @@ export default class IAMCCS_EasyFullNodeUI {
         await this._openEditorGoyaBase();
         try {
             const title = this.editorDialog?.querySelector?.(".iamccs-editor-title span");
-            if (title) title.textContent = "patreon.com/IAMCCS · goyAIcanvas EASY";
+            if (title) title.textContent = "patreon.com/IAMCCS - goyAIcanvas EASY";
         } catch (_e) {}
         this._enforceEasyRootMode();
     }
@@ -2313,12 +2277,23 @@ export default class IAMCCS_EasyFullNodeUI {
         }
     }
 
+    _compactEasyStateForWorkflow(state) {
+        const compact = JSON.parse(JSON.stringify(state || {}));
+        ["source_image_b64", "mask_b64", "sketch_b64"].forEach((key) => {
+            if (typeof compact[key] === "string" && compact[key].length > 0) {
+                compact[key] = "";
+            }
+        });
+        compact.workflow_state_compact = true;
+        compact.workflow_state_note = "Large bitmap fields stay in runtime/output files, not in the ComfyUI workflow draft.";
+        return compact;
+    }
     _writeEasyStateWidget(state) {
         const widget = this._findWidget("goya_easy_state");
         if (!widget || !state) {
             return;
         }
-        widget.value = JSON.stringify(state);
+        widget.value = JSON.stringify(this._compactEasyStateForWorkflow(state));
         try { widget.callback?.(widget.value); } catch (_e) {}
         this.node?.setDirtyCanvas?.(true, true);
     }
@@ -2702,3 +2677,16 @@ export default class IAMCCS_EasyFullNodeUI {
         return widget.value ?? fallback;
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+

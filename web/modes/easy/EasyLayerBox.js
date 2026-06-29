@@ -1,4 +1,4 @@
-export default class EasyLayerBox {
+﻿export default class EasyLayerBox {
     constructor(container, eventBus, modules = {}) {
         this.container = container;
         this.eventBus = eventBus;
@@ -66,11 +66,29 @@ export default class EasyLayerBox {
 
     _bindDom() {
         this.container.querySelector("[data-action='add-layer']")?.addEventListener("click", () => {
-            const layer = this.layerManager?.addLayer?.("Paint Layer");
-            if (layer?.id) this.layerManager?.selectLayer?.(layer.id);
+            const layer = this.layerManager?.addLayer?.("Easy Paint Layer");
+            if (layer?.id) {
+                this.layerManager?.updateLayer?.({
+                    id: layer.id,
+                    announce: false,
+                    patch: {
+                        name: "Easy Paint Layer",
+                        visible: true,
+                        locked: false,
+                        metadata: {
+                            ...(layer.metadata || {}),
+                            easyManaged: true,
+                            easyRole: "easy_draw_surface",
+                            easyDrawSurface: "white",
+                        },
+                    },
+                });
+                this.layerManager?.selectLayer?.(layer.id);
+            }
             this.eventBus.emit("canvas:mode", { drawOnly: true });
-            this.eventBus.emit("brush:update", { brush: "brush" });
-            this.eventBus.emit("tool:change", "brush");
+            this.eventBus.emit("brush:update", { brush: "pencil", color: "#000000", size: 32, source: "easy-draw" });
+            this.eventBus.emit("tool:change", "pencil");
+            this.eventBus.emit("status:message", "Easy paint layer ready");
         });
         this.container.querySelectorAll(".easy-layer-box__layer").forEach((row) => {
             const id = row.dataset.layerId;
@@ -87,8 +105,17 @@ export default class EasyLayerBox {
                 if (layer) this.layerManager?.updateLayer?.({ id, patch: { visible: layer.visible === false } });
             });
             row.querySelector("[data-action='delete-layer']")?.addEventListener("click", (event) => {
+                event.preventDefault();
                 event.stopPropagation();
-                this.layerManager?.removeLayer?.(id);
+                const ok = this.layerManager?.removeLayer?.(id);
+                if (ok) {
+                    this.eventBus.emit("status:message", "Layer deleted");
+                    this.eventBus.emit("canvas:render:request", { source: "easy-layer-delete" });
+                    this.eventBus.emit("canvas:export:composite", { reason: "easy-layer-delete" });
+                    this.eventBus.emit("workflow:params:changed", { immediate: true });
+                } else {
+                    this.eventBus.emit("status:message", "Layer delete unavailable for this layer");
+                }
             });
             const backgroundInput = row.querySelector("[data-action='background-color']");
             backgroundInput?.addEventListener("pointerdown", (event) => event.stopPropagation());
@@ -194,3 +221,4 @@ export default class EasyLayerBox {
         this._unsubs = [];
     }
 }
+

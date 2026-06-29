@@ -3,14 +3,14 @@
  * Entry point for EASY mode - beginner-friendly UI
  */
 
-import EasyPanel from './EasyPanel.js?v=20260627_EASY_GENERATE_RESET01';
-import EasyGallery from './EasyGallery.js?v=20260627_EASY_DRAW_BEFORE_COLOR01';
-import EasyShortcutRail from './EasyShortcutRail.js?v=20260627_EASY_GENERATE_RESET02';
-import EasyDrawPanel from './EasyDrawPanel.js?v=20260627_EASY_PERSIST_CANONICAL01';
-import EasyLayerBox from './EasyLayerBox.js?v=20260627_EASY_RESIZE_PERSIST01';
-import EasySelectionOverlay from './EasySelectionOverlay.js?v=20260626_EASY_T2I_OUTPAINT03';
-import EasyProgressPanel from './EasyProgressPanel.js?v=20260626_EASY_T2I_OUTPAINT03';
-import EasyPromptPanel from './EasyPromptPanel.js?v=20260627_EASY_GENERATE_RESET01';
+import EasyPanel from './EasyPanel.js?v=20260629_EASY_CROP_DISABLED01';
+import EasyGallery from './EasyGallery.js?v=20260629_EASY_CROP_DISABLED01';
+import EasyShortcutRail from './EasyShortcutRail.js?v=20260629_EASY_CROP_DISABLED01';
+import EasyDrawPanel from './EasyDrawPanel.js?v=20260629_EASY_CROP_DISABLED01';
+import EasyLayerBox from './EasyLayerBox.js?v=20260629_EASY_CROP_DISABLED01';
+import EasySelectionOverlay from './EasySelectionOverlay.js?v=20260629_EASY_CROP_DISABLED01';
+import EasyProgressPanel from './EasyProgressPanel.js?v=20260629_EASY_CROP_DISABLED01';
+import EasyPromptPanel from './EasyPromptPanel.js?v=20260629_EASY_CROP_DISABLED01';
 
 export default class EasyMode {
     constructor(workspace, eventBus, modules) {
@@ -198,3 +198,5 @@ export default class EasyMode {
         this.container = null;
     }
 }
+
+

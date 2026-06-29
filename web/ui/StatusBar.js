@@ -6,6 +6,7 @@ export default class StatusBar {
         this.layerManager = layerManager;
         this.promptManager = promptManager;
         this.text = "";
+        this.tickerMessages = [];
         this.infoEl = document.createElement("div");
         this.infoEl.className = "goya-statusbar__info";
         this.tickerEl = document.createElement("div");
@@ -19,6 +20,7 @@ export default class StatusBar {
         this._w = 1024;
         this._h = 1024;
         this._update();
+        this._renderTicker();
     }
 
     _bind() {
@@ -107,14 +109,27 @@ export default class StatusBar {
 
     _pushTick(message) {
         try {
-            const el = document.createElement("span");
-            el.className = "goya-ticker__msg";
-            el.textContent = message;
-            this.tickerInner.appendChild(el);
-            const msgs = this.tickerInner.querySelectorAll(".goya-ticker__msg");
-            if (msgs.length > 8) {
-                this.tickerInner.removeChild(msgs[0]);
-            }
+            const text = String(message || "").trim();
+            if (!text) return;
+            this.tickerMessages.push(text);
+            if (this.tickerMessages.length > 10) this.tickerMessages.shift();
+            this._renderTicker();
         } catch (_e) {}
+    }
+
+    _renderTicker() {
+        if (!this.tickerInner) return;
+        const messages = this.tickerMessages.length
+            ? this.tickerMessages
+            : ["Ready"];
+        this.tickerInner.innerHTML = "";
+        for (let pass = 0; pass < 2; pass += 1) {
+            messages.forEach((message) => {
+                const el = document.createElement("span");
+                el.className = "goya-ticker__msg";
+                el.textContent = message;
+                this.tickerInner.appendChild(el);
+            });
+        }
     }
 }

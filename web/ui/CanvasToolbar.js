@@ -73,6 +73,9 @@ export default class CanvasToolbar {
             this._render();
         });
         this.eventBus.on("canvas:import:files", (payload) => {
+            if (payload?.__easyImportHandled) {
+                return;
+            }
             if (!payload) {
                 return;
             }
@@ -1238,3 +1241,4 @@ export default class CanvasToolbar {
         }
     }
 }
+

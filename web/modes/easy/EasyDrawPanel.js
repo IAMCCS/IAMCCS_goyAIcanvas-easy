@@ -1,4 +1,4 @@
-/**
+﻿/**
  * EasyDrawPanel.js
  * Easy drawing controls for helper-layer and inpaint-mask workflows.
  */
@@ -58,8 +58,11 @@ export default class EasyDrawPanel {
                 this._ensureIntentLayer();
                 this._applyToolState();
             } else if (this.state.easyMode === 'draw') {
-                this.state.tool = 'brush';
+                this.state.tool = 'pencil';
+                this.state.brushColor = '#000000';
+                this.state.brushSize = Math.max(1, Math.round(Number(this.state.brushSize) || 32));
                 this.eventBus.emit('canvas:pan:mode', { enabled: false });
+                this.eventBus.emit('canvas:mode', { drawOnly: true });
                 this._ensureIntentLayer();
                 this._applyToolState();
             } else {
@@ -80,6 +83,9 @@ export default class EasyDrawPanel {
                 await this._commitDrawModeSurface();
             }
             if (this.state.drawOnly && this.state.easyMode !== 'inpaint') {
+                this.state.tool = 'pencil';
+                this.state.brushColor = '#000000';
+                this.state.brushSize = Math.max(1, Math.round(Number(this.state.brushSize) || 32));
                 this._ensureIntentLayer();
                 this._applyToolState();
             }
@@ -395,7 +401,9 @@ export default class EasyDrawPanel {
             this._originalCanvasBackgroundColorCaptured = true;
         }
 
-        canvasEl.style.backgroundColor = (this.state.drawOnly || this.state.easyMode === 'draw')
+        const drawSurface = this.state.drawOnly || this.state.easyMode === 'draw';
+        canvasEl.classList.toggle('goya-main-canvas--draw-surface', drawSurface);
+        canvasEl.style.backgroundColor = drawSurface
             ? '#ffffff'
             : this._originalCanvasBackgroundColor;
     }
@@ -888,3 +896,5 @@ export default class EasyDrawPanel {
         this._unsubs = [];
     }
 }
+
+

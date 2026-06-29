@@ -1,7 +1,7 @@
-import VectorTool from "./VectorTool.js";
-import ToolTargetResolver from "./ToolTargetResolver.js?v=20260626_EASY_DRAWMASK_DIRECT01";
-import TransformMath from "./TransformMath.js";
-import { debugTrace } from "../utils/DebugTrace.js?v=20260627_EASY_DRAW_LATENCY01";
+import VectorTool from "./EasyVectorTool.js?v=20260629_EASY_CROP_DRAW01";
+import ToolTargetResolver from "./ToolTargetResolver.js?v=20260629_EASY_CROP_DRAW01";
+import TransformMath from "./EasyTransformMath.js?v=20260629_EASY_CROP_DRAW01";
+import { debugTrace } from "../utils/DebugTrace.js?v=20260629_EASY_CROP_DRAW01";
 
 const IAMCCS_SUPPORTED_STROKE_TOOLS = new Set(["brush", "pencil", "eraser"]);
 const IAMCCS_TRANSFORM_TOOLS = new Set(["move", "scale", "rotate"]);
@@ -12,7 +12,7 @@ const IAMCCS_LIQUIFY_TOOL = "liquify";
 export default class IAMCCSRenderer {
     constructor(canvasElement, eventBus, layerManager, maskManager) {
         this.canvas = canvasElement;
-        this.ctx = this.canvas.getContext("2d", { desynchronized: true });
+        this.ctx = this.canvas.getContext("2d", { desynchronized: true, willReadFrequently: true });
         this.eventBus = eventBus;
         this.layerManager = layerManager;
         this.maskManager = maskManager;
@@ -150,6 +150,11 @@ export default class IAMCCSRenderer {
         this.eventBus.on("layers:changed", (layers) => {
             this._syncImageCache(layers);
             this._requestRender();
+        });
+        this.eventBus.on("layer:delete", (layerId) => {
+            try { if (layerId) this.imageCache.delete(layerId); } catch (_e) {}
+            try { if (layerId) this.maskCache.delete(layerId); } catch (_e) {}
+            this.clearTransientState();
         });
 
         // Mask UI toggles should immediately affect the canvas
@@ -595,7 +600,7 @@ export default class IAMCCSRenderer {
                         }
                     }
                 } else if (layer.id === "layer_background") {
-                    const fill = layer.metadata?.backgroundColor ?? "#1f1f1f";
+                    const fill = this.toolTargetResolver?.drawOnly ? "#ffffff" : (layer.metadata?.backgroundColor ?? "#1f1f1f");
                     this.ctx.fillStyle = fill;
                     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
                 }
@@ -1813,7 +1818,7 @@ export default class IAMCCSRenderer {
                         bctx.drawImage(image, 0, 0, w, h);
                     }
                 } else if (layer.id === 'layer_background') {
-                    const fill = layer.metadata?.backgroundColor ?? '#1f1f1f';
+                    const fill = this.toolTargetResolver?.drawOnly ? '#ffffff' : (layer.metadata?.backgroundColor ?? '#1f1f1f');
                     bctx.fillStyle = fill; bctx.fillRect(0,0,w,h);
                 }
             }
@@ -1915,7 +1920,7 @@ export default class IAMCCSRenderer {
                 this._drawImageAtNativeSize(this.liveLayerCtx, image);
             }
         } else if (layer.id === "layer_background") {
-            const fill = layer.metadata?.backgroundColor ?? "#1f1f1f";
+            const fill = this.toolTargetResolver?.drawOnly ? "#ffffff" : (layer.metadata?.backgroundColor ?? "#1f1f1f");
             this.liveLayerCtx.fillStyle = fill;
             this.liveLayerCtx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         }
@@ -2301,7 +2306,7 @@ export default class IAMCCSRenderer {
                 ctx.restore();
             }
         } else if (layer.id === 'layer_background') {
-            const fill = layer.metadata?.backgroundColor ?? '#1f1f1f';
+            const fill = this.toolTargetResolver?.drawOnly ? '#ffffff' : (layer.metadata?.backgroundColor ?? '#1f1f1f');
             ctx.fillStyle = fill;
             ctx.fillRect(0, 0, snapshot.width, snapshot.height);
         }
@@ -3521,3 +3526,6 @@ export default class IAMCCSRenderer {
         }
     }
 }
+
+
+

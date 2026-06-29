@@ -139,7 +139,7 @@ export default class EasyProgressPanel {
         line.className = 'easy-progress-panel__ticker-line';
         line.textContent = text;
         el.prepend(line);
-        while (el.children.length > 8) el.lastChild.remove();
+        while (el.children.length > 4) el.lastChild.remove();
     }
 
     _parseProgressFromStatus(text) {

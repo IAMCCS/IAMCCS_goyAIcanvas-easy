@@ -59,7 +59,6 @@ export default class EasyShortcutRail {
                         <button class="easy-shortcut-rail__btn" id="easy-tool-move" data-tool="move">Move</button>
                         <button class="easy-shortcut-rail__btn" id="easy-tool-scale" data-tool="scale">Scale</button>
                         <button class="easy-shortcut-rail__btn" id="easy-tool-rotate" data-tool="rotate">Rotate</button>
-                        <button class="easy-shortcut-rail__btn" id="easy-tool-crop" data-tool="crop">Crop</button>
                         <button class="easy-shortcut-rail__btn" id="easy-tool-reframe">Reframe</button>
                     </div>
                     <div class="easy-shortcut-rail__danger-row">
@@ -71,12 +70,6 @@ export default class EasyShortcutRail {
                     <div class="easy-shortcut-rail__grid easy-shortcut-rail__grid--history">
                         <button class="easy-shortcut-rail__btn" id="easy-tool-undo">Undo</button>
                         <button class="easy-shortcut-rail__btn" id="easy-tool-redo">Redo</button>
-                    </div>
-                </div>
-                <div class="easy-shortcut-rail__section">
-                    <div class="easy-shortcut-rail__section-title">Crop</div>
-                    <div class="easy-shortcut-rail__crop-actions">
-                        <button class="easy-shortcut-rail__btn easy-shortcut-rail__btn--apply" id="easy-tool-crop-apply" ${this._cropActive ? '' : 'disabled'}>Apply Crop</button>
                     </div>
                 </div>
                 <div class="easy-shortcut-rail__section">
@@ -168,23 +161,6 @@ export default class EasyShortcutRail {
             this.eventBus.emit('tool:change', 'rotate');
         });
 
-        this.container.querySelector('#easy-tool-crop')?.addEventListener('click', () => {
-            this.eventBus.emit('canvas:frame', { enabled: false });
-            if (this._cropActive) {
-                this.eventBus.emit('canvas:crop:cancel');
-                activateSelectMode();
-                return;
-            }
-            this.eventBus.emit('canvas:pan:mode', { enabled: false });
-            this.eventBus.emit('tool:change', 'cursor');
-            this.eventBus.emit('canvas:crop:start');
-        });
-
-        this.container.querySelector('#easy-tool-crop-apply')?.addEventListener('click', () => {
-            if (!this._cropActive) return;
-            this.eventBus.emit('canvas:crop:apply');
-        });
-
         this.container.querySelector('#easy-tool-cancel')?.addEventListener('click', () => {
             this.eventBus.emit('easy:generation:reset', { reason: 'clear-layer-button' });
             this.eventBus.emit('canvas:selection:delete');
@@ -216,15 +192,9 @@ export default class EasyShortcutRail {
     _syncButtonState() {
         this.container.querySelectorAll('[data-tool]').forEach((button) => {
             const tool = button.dataset.tool;
-            const isActive = tool === 'crop'
-                ? this._cropActive
-                : (tool === 'cursor' ? (this._activeTool === 'cursor' && this._frameEnabled) : this._activeTool === tool);
+            const isActive = tool === 'cursor' ? (this._activeTool === 'cursor' && this._frameEnabled) : this._activeTool === tool;
             button.classList.toggle('is-active', isActive);
         });
-        const applyButton = this.container.querySelector('#easy-tool-crop-apply');
-        if (applyButton) {
-            applyButton.disabled = !this._cropActive;
-        }
     }
 
     cleanup() {

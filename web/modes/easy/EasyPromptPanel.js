@@ -145,7 +145,12 @@ export default class EasyPromptPanel {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ prompt_id: promptId }),
             });
-            this.eventBus.emit('workflow:phase', { index: 0, count: 1, phase: 'Stopping generation', phaseProgress: 100 });
+            this.eventBus.emit('workflow:phase', { index: 0, count: 1, phase: 'Generation stopped', phaseProgress: 100 });
+            this.eventBus.emit('status:message', 'Easy generation stopped.');
+            this.state.generationState = 'idle';
+            this.state.activePromptId = '';
+            this.state.generationStartedAt = 0;
+            this._syncGenerateButton();
         } catch (error) {
             console.warn('[EasyPromptPanel] Failed to interrupt generation', error);
             this.eventBus.emit('status:message', 'Easy generation stop request failed.');
@@ -187,7 +192,7 @@ export default class EasyPromptPanel {
             button.textContent = state === 'stopping'
                 ? 'Stopping'
                 : state === 'generating'
-                    ? 'Generating'
+                    ? 'Stop'
                     : 'Generate';
             button.setAttribute('aria-pressed', state === 'generating' || state === 'stopping' ? 'true' : 'false');
         }
