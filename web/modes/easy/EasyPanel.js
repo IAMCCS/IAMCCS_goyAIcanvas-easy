@@ -150,6 +150,9 @@ export default class EasyPanel {
             drawOnly: false,
             outpaintDragSelection: true,
             outpaintPadding: null,
+            outpaintCandidates: [],
+            outpaintCandidateIndex: -1,
+            outpaintBaseSourceDataUrl: '',
         };
 
         this._unsubs = [];
@@ -191,11 +194,21 @@ export default class EasyPanel {
                 this.refresh();
             }
         };
-        const onOutpaintReset = () => {
+        const onOutpaintReset = (payload = {}) => {
             this._resetOutpaintFrame({ notifyOverlay: false });
+            if (payload.reason === 'accepted' || payload.reason === 'mode-change' || payload.reason === 'clear') {
+                this.state.outpaintBaseSourceDataUrl = '';
+                this.state.outpaintCandidates = [];
+                this.state.outpaintCandidateIndex = -1;
+                this.refresh();
+            }
         };
-        const onCanvasImageChanged = () => {
+        const onCanvasImageChanged = (payload = {}) => {
+            if (payload?.source === 'easy-outpaint-candidate') return;
             this._resetOutpaintFrame();
+            this.state.outpaintBaseSourceDataUrl = '';
+            this.state.outpaintCandidates = [];
+            this.state.outpaintCandidateIndex = -1;
         };
 
         this._unsubs.push(this.eventBus.on('canvas:resize', onResize));
@@ -207,6 +220,12 @@ export default class EasyPanel {
         this._unsubs.push(this.eventBus.on('easy:selection:set', onSelectionSet));
         this._unsubs.push(this.eventBus.on('easy:outpaint:set', onOutpaintSet));
         this._unsubs.push(this.eventBus.on('easy:outpaint:reset', onOutpaintReset));
+        this._unsubs.push(this.eventBus.on('easy:outpaint:candidates', (payload = {}) => {
+            this.state.outpaintCandidates = Array.isArray(payload.candidates) ? payload.candidates : [];
+            this.state.outpaintCandidateIndex = Number.isFinite(Number(payload.index)) ? Number(payload.index) : -1;
+            if (payload.accepted) this.state.outpaintBaseSourceDataUrl = '';
+            if (this.state.easyMode === 'outpaint') this.refresh();
+        }));
         this._unsubs.push(this.eventBus.on('easy:prompt:update', (patch = {}) => {
             if (typeof patch.prompt === 'string') this.state.prompt = patch.prompt;
             if (typeof patch.negativePrompt === 'string') this.state.negativePrompt = patch.negativePrompt;
@@ -241,6 +260,12 @@ export default class EasyPanel {
         this.state.outpaintPadding = null;
         if (options.notifyOverlay !== false) {
             this.eventBus.emit('easy:selection:clear', { mode: 'outpaint' });
+        }
+        if (options.clearCandidates) {
+            this.state.outpaintBaseSourceDataUrl = '';
+            this.state.outpaintCandidates = [];
+            this.state.outpaintCandidateIndex = -1;
+            this.eventBus.emit('easy:outpaint:reset', { reason: options.reason || 'clear' });
         }
         if (hadFrame && this.state.easyMode === 'outpaint') {
             this.refresh();
@@ -627,6 +652,11 @@ export default class EasyPanel {
         const outpaintSelectionLabel = outpaintTotal > 0
             ? `L${Math.round(outpaintPadding.left || 0)} T${Math.round(outpaintPadding.top || 0)} R${Math.round(outpaintPadding.right || 0)} B${Math.round(outpaintPadding.bottom || 0)}`
             : 'No frame';
+        const outpaintCandidates = Array.isArray(this.state.outpaintCandidates) ? this.state.outpaintCandidates : [];
+        const outpaintCandidateIndex = Number.isFinite(Number(this.state.outpaintCandidateIndex)) ? Number(this.state.outpaintCandidateIndex) : -1;
+        const outpaintCandidateCount = outpaintCandidates.length;
+        const outpaintCandidateNumber = outpaintCandidateCount && outpaintCandidateIndex >= 0 ? outpaintCandidateIndex + 1 : 0;
+        const outpaintCandidateLabel = outpaintCandidateCount ? `${outpaintCandidateNumber} / ${outpaintCandidateCount}` : '0 / 0';
         const outpaintSections = this.state.easyMode === 'outpaint' ? `
                 <div class="easy-panel__field-card easy-panel__field-card--compact">
                     <label>Outpaint Frame:</label>
@@ -647,6 +677,22 @@ export default class EasyPanel {
                         >
                             Clear
                         </button>
+                    </div>
+                    <div class="easy-panel__candidate-row">
+                        <button
+                            id="easy-outpaint-candidate-accept"
+                            type="button"
+                            class="easy-panel__button easy-panel__button--accept"
+                            ${outpaintCandidateCount ? '' : 'disabled'}
+                            title="Accept the visible outpaint candidate"
+                        >
+                            Accept
+                        </button>
+                        <div class="easy-panel__candidate-stepper" title="Outpaint candidate">
+                            <button id="easy-outpaint-candidate-prev" type="button" class="easy-panel__mini-button" ${outpaintCandidateCount > 1 ? '' : 'disabled'}>‹</button>
+                            <span>${outpaintCandidateLabel}</span>
+                            <button id="easy-outpaint-candidate-next" type="button" class="easy-panel__mini-button" ${outpaintCandidateCount > 1 ? '' : 'disabled'}>›</button>
+                        </div>
                     </div>
                     <div class="easy-panel__field-note">${outpaintSelectionLabel}</div>
                 </div>
@@ -777,6 +823,9 @@ export default class EasyPanel {
         const lora2Strength = this.container.querySelector('#easy-lora2-strength');
         const outpaintSelectionToggle = this.container.querySelector('#easy-outpaint-selection-toggle');
         const outpaintSelectionClear = this.container.querySelector('#easy-outpaint-selection-clear');
+        const outpaintCandidateAccept = this.container.querySelector('#easy-outpaint-candidate-accept');
+        const outpaintCandidatePrev = this.container.querySelector('#easy-outpaint-candidate-prev');
+        const outpaintCandidateNext = this.container.querySelector('#easy-outpaint-candidate-next');
 
         dimPreset?.addEventListener('change', (e) => {
             if (e.target.value === 'custom') return;
@@ -816,7 +865,7 @@ export default class EasyPanel {
             const previousMode = this.state.easyMode;
             this.state.easyMode = e.target.value;
             if (previousMode === 'outpaint' && this.state.easyMode !== 'outpaint') {
-                this._resetOutpaintFrame();
+                this._resetOutpaintFrame({ clearCandidates: true, reason: 'mode-change' });
             }
             this.eventBus.emit('easy:mode:change', { mode: e.target.value });
             this.eventBus.emit('status:message', `Easy mode changed: ${this.getModeLabel(e.target.value)}`);
@@ -831,7 +880,7 @@ export default class EasyPanel {
                 const previousMode = this.state.easyMode;
                 this.state.easyMode = mode;
                 if (previousMode === 'outpaint' && mode !== 'outpaint') {
-                    this._resetOutpaintFrame();
+                    this._resetOutpaintFrame({ clearCandidates: true, reason: 'mode-change' });
                 }
                 this.eventBus.emit('easy:mode:change', { mode });
                 this.eventBus.emit('status:message', `Easy mode changed: ${this.getModeLabel(mode)}`);
@@ -847,8 +896,17 @@ export default class EasyPanel {
         });
 
         outpaintSelectionClear?.addEventListener('click', () => {
-            this.state.outpaintPadding = null;
-            this.eventBus.emit('easy:selection:clear', { mode: 'outpaint' });
+            this._resetOutpaintFrame({ clearCandidates: true, reason: 'clear' });
+        });
+
+        outpaintCandidateAccept?.addEventListener('click', () => {
+            this.eventBus.emit('easy:outpaint:candidate:accept');
+        });
+        outpaintCandidatePrev?.addEventListener('click', () => {
+            this.eventBus.emit('easy:outpaint:candidate:select', { direction: -1 });
+        });
+        outpaintCandidateNext?.addEventListener('click', () => {
+            this.eventBus.emit('easy:outpaint:candidate:select', { direction: 1 });
         });
 
         templateDropdown?.addEventListener('change', (e) => {
@@ -1104,11 +1162,19 @@ export default class EasyPanel {
         wr._generationSource = 'easy';
         if ((this.state.easyMode === 'draw' || this.state.easyMode === 'i2i' || this.state.easyMode === 'inpaint' || this.state.easyMode === 'outpaint') && typeof wr.executeEasyStandalone === 'function') {
             await this._waitForCanvasCompositeReady();
-            executionPayload.sourceImageDataUrl = this._getEasySourceImageDataUrl({
+            let sourceImageDataUrl = this._getEasySourceImageDataUrl({
                 preferLayerSource: this.state.easyMode === 'outpaint',
                 forceComposite: this.state.easyMode !== 'outpaint',
                 preferDrawSource: false,
             });
+            if (this.state.easyMode === 'outpaint') {
+                if (!this.state.outpaintBaseSourceDataUrl) {
+                    this.state.outpaintBaseSourceDataUrl = sourceImageDataUrl;
+                } else {
+                    sourceImageDataUrl = this.state.outpaintBaseSourceDataUrl;
+                }
+            }
+            executionPayload.sourceImageDataUrl = sourceImageDataUrl;
             if (this.state.easyMode === 'inpaint') {
                 executionPayload.maskImageDataUrl = this._getEasyMaskImageDataUrl();
             }

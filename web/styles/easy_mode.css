@@ -684,6 +684,13 @@
     box-shadow: inset 0 0 0 1px rgba(255, 222, 173, 0.14);
 }
 
+.easy-panel__button--accept {
+    background: linear-gradient(135deg, rgba(22, 163, 74, 0.9), rgba(74, 222, 128, 0.86));
+    color: #06170b;
+    border-color: rgba(187, 247, 208, 0.58);
+    box-shadow: 0 10px 22px rgba(22, 163, 74, 0.2);
+}
+
 .easy-panel__button[disabled] {
     opacity: 0.55;
     cursor: not-allowed;
@@ -704,6 +711,52 @@
     border-radius: 12px;
     font-size: 0.72rem;
     letter-spacing: 0.04em;
+}
+
+.easy-panel__candidate-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.55rem;
+    align-items: center;
+    margin-top: 0.55rem;
+}
+
+.easy-panel__candidate-row .easy-panel__button {
+    min-height: 38px;
+    padding: 0.62rem 0.8rem;
+    border-radius: 12px;
+    font-size: 0.72rem;
+}
+
+.easy-panel__candidate-stepper {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    min-height: 38px;
+    padding: 0.25rem 0.35rem;
+    border: 1px solid rgba(240, 179, 94, 0.32);
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.28);
+    color: #f7cb8d;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.easy-panel__mini-button {
+    width: 28px;
+    height: 28px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #ffffff;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.easy-panel__mini-button:disabled {
+    opacity: 0.38;
+    cursor: not-allowed;
 }
 
 .easy-selection-overlay {

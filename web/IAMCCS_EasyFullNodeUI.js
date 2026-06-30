@@ -1,21 +1,21 @@
 import EventBus from "./utils/EventBus.js";
 import Constants from "./utils/Constants.js";
-import CanvasView from "./ui/Canvas.js?v=20260630_EASY_OUTPAINT_CONDITIONING01";
-import CanvasToolbar from "./ui/CanvasToolbar.js?v=20260630_EASY_OUTPAINT_CONDITIONING01";
-import StatusBar from "./ui/StatusBar.js?v=20260630_EASY_OUTPAINT_CONDITIONING01";
-import EasyLayerManager from "./engine/EasyLayerManager.js?v=20260630_EASY_OUTPAINT_CONDITIONING01";
-import EasyMaskManager from "./engine/EasyMaskManager.js?v=20260630_EASY_OUTPAINT_CONDITIONING01";
-import EasyPromptManager from "./engine/EasyPromptManager.js?v=20260630_EASY_OUTPAINT_CONDITIONING01";
-import EasyStateBridge from "./engine/EasyStateBridge.js?v=20260630_EASY_OUTPAINT_CONDITIONING01";
-import WorkflowRunner from "./engine/WorkflowRunner.js?v=20260630_EASY_OUTPAINT_CONDITIONING01";
-import EasySettingsPanel from "./modes/easy/EasySettingsPanel.js?v=20260630_EASY_OUTPAINT_CONDITIONING01";
+import CanvasView from "./ui/Canvas.js?v=20260630_EASY_OUTPAINT_ACCEPT02";
+import CanvasToolbar from "./ui/CanvasToolbar.js?v=20260630_EASY_OUTPAINT_ACCEPT02";
+import StatusBar from "./ui/StatusBar.js?v=20260630_EASY_OUTPAINT_ACCEPT02";
+import EasyLayerManager from "./engine/EasyLayerManager.js?v=20260630_EASY_OUTPAINT_ACCEPT02";
+import EasyMaskManager from "./engine/EasyMaskManager.js?v=20260630_EASY_OUTPAINT_ACCEPT02";
+import EasyPromptManager from "./engine/EasyPromptManager.js?v=20260630_EASY_OUTPAINT_ACCEPT02";
+import EasyStateBridge from "./engine/EasyStateBridge.js?v=20260630_EASY_OUTPAINT_ACCEPT02";
+import WorkflowRunner from "./engine/WorkflowRunner.js?v=20260630_EASY_OUTPAINT_ACCEPT02";
+import EasySettingsPanel from "./modes/easy/EasySettingsPanel.js?v=20260630_EASY_OUTPAINT_ACCEPT02";
 import UIHelpers from "./utils/UIHelpers.js";
-import ModeSwitchBar from "./modes/ModeSwitchBar.js?v=20260630_EASY_OUTPAINT_CONDITIONING01";
-import LayoutRouter from "./modes/LayoutRouter.js?v=20260630_EASY_OUTPAINT_CONDITIONING01";
-import { GOYA_BUILD_INFO, getGoyaBuildLabel } from "./app/BuildInfo.js?v=20260630_EASY_OUTPAINT_CONDITIONING01";
+import ModeSwitchBar from "./modes/ModeSwitchBar.js?v=20260630_EASY_OUTPAINT_ACCEPT02";
+import LayoutRouter from "./modes/LayoutRouter.js?v=20260630_EASY_OUTPAINT_ACCEPT02";
+import { GOYA_BUILD_INFO, getGoyaBuildLabel } from "./app/BuildInfo.js?v=20260630_EASY_OUTPAINT_ACCEPT02";
 
-const EASY_MODE_CSS_URL = new URL("./styles/easy_mode.css", import.meta.url).href + "?v=20260630_EASY_OUTPAINT_CONDITIONING01";
-const NODE_PREVIEW_CSS_URL = new URL("./styles/node_preview.css", import.meta.url).href + "?v=20260630_EASY_OUTPAINT_CONDITIONING01";const EASY_STATE_SCHEMA = "iamccs.goyai.easy.state";
+const EASY_MODE_CSS_URL = new URL("./styles/easy_mode.css", import.meta.url).href + "?v=20260630_EASY_OUTPAINT_ACCEPT02";
+const NODE_PREVIEW_CSS_URL = new URL("./styles/node_preview.css", import.meta.url).href + "?v=20260630_EASY_OUTPAINT_ACCEPT02";const EASY_STATE_SCHEMA = "iamccs.goyai.easy.state";
 const EASY_STATE_BUILD = "IAMCCS_GoyAIcanvas_EasyFull_AllInOne_State_20260626";
 let stylesheetInjected = false;
 

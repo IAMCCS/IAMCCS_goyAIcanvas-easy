@@ -204,14 +204,28 @@ export default class EasyGallery {
         }
     }
 
-    removeImage(name) {
+    async removeImage(name) {
         const index = this.images.findIndex((entry) => entry.name === name);
         if (index < 0) return;
-        const [removed] = this.images.splice(index, 1);
-        const totalPages = Math.max(1, Math.ceil(this.images.length / this._pageSize));
-        this._page = Math.min(this._page, totalPages - 1);
-        this.render();
-        this.eventBus.emit('status:message', `Removed ${removed?.name || 'image'} from Easy gallery list`);
+        const removed = this.images[index];
+        const galleryBase = Constants.EASY_API_BASE || '/iamccs/goyai_easy';
+        try {
+            const response = await fetch(`${galleryBase}/gallery/hide`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name }),
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || data.error) throw new Error(data.error || `Gallery hide failed (${response.status})`);
+            this.images.splice(index, 1);
+            const totalPages = Math.max(1, Math.ceil(this.images.length / this._pageSize));
+            this._page = Math.min(this._page, totalPages - 1);
+            this.render();
+            this.eventBus.emit('status:message', `Removed ${removed?.name || 'image'} from Easy gallery list`);
+        } catch (error) {
+            console.warn('[EasyGallery] Failed to hide gallery image', error);
+            this.eventBus.emit('status:message', `Gallery delete failed: ${error?.message || error}`);
+        }
     }
 
     _escapeAttr(value) {

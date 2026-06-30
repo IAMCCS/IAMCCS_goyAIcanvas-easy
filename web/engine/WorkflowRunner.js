@@ -414,7 +414,7 @@ export default class WorkflowRunner {
         const prepared = document.createElement("canvas");
         prepared.width = width;
         prepared.height = height;
-        const pctx = prepared.getContext("2d");
+        const pctx = prepared.getContext("2d", { willReadFrequently: true });
         if (!pctx) {
             throw new Error("Easy outpaint: unable to prepare expanded source.");
         }
@@ -425,16 +425,22 @@ export default class WorkflowRunner {
         const mask = document.createElement("canvas");
         mask.width = width;
         mask.height = height;
-        const mctx = mask.getContext("2d");
+        const mctx = mask.getContext("2d", { willReadFrequently: true });
         if (!mctx) {
             throw new Error("Easy outpaint: unable to prepare mask.");
         }
-        mctx.clearRect(0, 0, width, height);
+        mctx.fillStyle = "#000000";
+        mctx.fillRect(0, 0, width, height);
         mctx.fillStyle = "#ff0000";
         if (top > 0) mctx.fillRect(0, 0, width, top);
         if (bottom > 0) mctx.fillRect(0, top + sourceHeight, width, bottom);
         if (left > 0) mctx.fillRect(0, top, left, sourceHeight);
         if (right > 0) mctx.fillRect(left + sourceWidth, top, right, sourceHeight);
+        const overlap = Math.max(16, Math.round(Number(outpaintPadding?.overlap) || 32));
+        if (top > 0) mctx.fillRect(left, top, sourceWidth, Math.min(overlap, sourceHeight));
+        if (bottom > 0) mctx.fillRect(left, Math.max(top, top + sourceHeight - overlap), sourceWidth, Math.min(overlap, sourceHeight));
+        if (left > 0) mctx.fillRect(left, top, Math.min(overlap, sourceWidth), sourceHeight);
+        if (right > 0) mctx.fillRect(Math.max(left, left + sourceWidth - overlap), top, Math.min(overlap, sourceWidth), sourceHeight);
 
         return {
             sourceImageDataUrl: prepared.toDataURL("image/png"),
@@ -449,7 +455,8 @@ export default class WorkflowRunner {
                 bottom,
                 source_rect: { x: left, y: top, w: sourceWidth, h: sourceHeight, unit: "px" },
                 source_is_prepared: true,
-                style: "invoke_unicanvas_drag_frame",
+                mask_overlap: overlap,
+                style: "unicanvas_masked_latent_drag_frame",
             },
         };
     }
@@ -483,11 +490,8 @@ export default class WorkflowRunner {
     }
 
     async _loadEasyStandaloneWorkflow(mode) {
-        if (mode === "draw" || mode === "i2i") {
+        if (mode === "draw" || mode === "i2i" || mode === "outpaint") {
             return { nodes: [], fallback: `easy_${mode}_reference_builtin` };
-        }
-        if (mode === "outpaint") {
-            return loadEasyWorkflow("outpaint");
         }
         return loadEasyWorkflow(mode);
     }
@@ -495,6 +499,9 @@ export default class WorkflowRunner {
     _patchEasyStandaloneWorkflow(graph, params = {}, assets = {}, mode = "i2i") {
         if (mode === "draw" || mode === "i2i") {
             return this._buildEasyReferenceI2IPrompt(params, assets, mode);
+        }
+        if (mode === "outpaint") {
+            return this._buildEasyUniCanvasOutpaintPrompt(params, assets);
         }
         const patched = JSON.parse(JSON.stringify(graph || {}));
         const entries = Object.entries(patched);
@@ -585,84 +592,6 @@ export default class WorkflowRunner {
         }
 
         return { prompt: patched, meta: { seed, steps, cfg, sampler, scheduler, denoise, width, height, mode } };
-    }
-
-    _patchEasyFl9bOutpaintWorkflow(graph, params = {}, assets = {}) {
-        const patched = JSON.parse(JSON.stringify(graph || {}));
-        const outpaint = params.outpaint || {};
-        const left = Math.max(0, Math.round(Number(outpaint.left) || 0));
-        const top = Math.max(0, Math.round(Number(outpaint.top) || 0));
-        const right = Math.max(0, Math.round(Number(outpaint.right) || 0));
-        const bottom = Math.max(0, Math.round(Number(outpaint.bottom) || 0));
-        const width = Math.max(64, Math.round(Number(params.width ?? this.easyCanvasWidth ?? this.canvasWidth) || 1024));
-        const height = Math.max(64, Math.round(Number(params.height ?? this.easyCanvasHeight ?? this.canvasHeight) || 1024));
-        const sourceImage = this._easyAssetLoadImageValue(assets.source);
-        const promptText = String(params.prompt ?? this._getGlobalPromptText?.() ?? "").trim();
-        const negativeText = String(params.negativePrompt ?? this._getGlobalNegativePromptText?.() ?? "");
-
-        for (const node of (patched.nodes || [])) {
-            if (!node || !node.type) continue;
-            const values = Array.isArray(node.widgets_values) ? [...node.widgets_values] : [];
-            if (node.type === "LoadImage") {
-                node.widgets_values = [sourceImage, "image"];
-            } else if (node.type === "CLIPTextEncode") {
-                const id = Number(node.id);
-                const title = String(node.title || node.properties?.["Node name for S&R"] || "").toLowerCase();
-                const isNegative = id === 191 || title.includes("negative");
-                node.widgets_values = [isNegative ? negativeText : promptText];
-            } else if (node.type === "PrimitiveStringMultiline") {
-                node.widgets_values = [promptText];
-            } else if (node.type === "easy int" || node.type === "PrimitiveInt") {
-                node.widgets_values = [Math.max(1, Math.round(Number(params.steps ?? this.steps ?? 8) || 8))];
-            } else if (node.type === "PrimitiveFloat") {
-                node.widgets_values = [Number(params.cfg ?? this.cfg ?? 1) || 1];
-            } else if (node.type === "Seed Generator" || node.type === "RandomNoise") {
-                const rawSeed = Number(params.seed ?? this.seed);
-                node.widgets_values = [Number.isFinite(rawSeed) && rawSeed >= 0 ? Math.floor(rawSeed) : Math.floor(Math.random() * EASY_RANDOM_SEED_MAX), "fixed"];
-            } else if (node.type === "Sampler Selector" || node.type === "KSamplerSelect") {
-                node.widgets_values = [String(params.fl9bSampler || params.sampler || this.sampler || "res_2s")];
-            } else if (node.type === "LoaderGGUF" || node.type === "UnetLoaderGGUF" || node.type === "UNETLoader") {
-                if (params.generationModel || params.modelChoice) node.widgets_values = [String(params.generationModel || params.modelChoice), ...values.slice(1)];
-            } else if (node.type === "ClipLoaderGGUF" || node.type === "CLIPLoader") {
-                if (params.clipModel) node.widgets_values = [String(params.clipModel), values[1] || params.clipType || "flux2", values[2] || "default"];
-            } else if (node.type === "VaeGGUF" || node.type === "VAELoader") {
-                if (params.vaeModel) node.widgets_values = [String(params.vaeModel)];
-            } else if (node.type === "EmptyLatentImage" || node.type === "EmptyFlux2LatentImage") {
-                node.widgets_values = [width, height, values[2] || 1];
-            } else if (node.type === "ImagePadKJ") {
-                node.widgets_values = [left, right, top, bottom, 0, "color", "0, 0, 0"];
-            } else if (node.type === "ImageResizeKJv2") {
-                node.widgets_values = [width, height, values[2] || "nearest-exact", values[3] || "resize", values[4] || "0, 0, 0", values[5] || "center", values[6] || 2, values[7] || "cpu"];
-            } else if (node.type === "SaveImage") {
-                node.widgets_values = [`${EASY_OUTPUT_PREFIX}/goyai_easy_outpaint`];
-            }
-        }
-
-        const prompt = this._compileUiWorkflowToApiPrompt(patched, {
-            ...params,
-            sourceImage,
-            width,
-            height,
-            filenamePrefix: `${EASY_OUTPUT_PREFIX}/goyai_easy_outpaint`,
-        });
-        this._applyNegativeTextEncodeFallback(prompt, params.negativePrompt);
-        this._applyModelOnlyLoras(prompt);
-        return {
-            prompt,
-            meta: {
-                seed: params.seed ?? this.seed,
-                steps: params.steps ?? this.steps,
-                cfg: params.cfg ?? this.cfg,
-                sampler: params.fl9bSampler || "res_2s",
-                scheduler: "flux2",
-                denoise: 1,
-                width,
-                height,
-                mode: "outpaint",
-                workflow: "FL9B_OUTPAIN.json",
-                workflowSource: "json",
-            },
-        };
     }
 
     _buildEasyReferenceI2IPrompt(params = {}, assets = {}, mode = "i2i") {
@@ -838,43 +767,48 @@ export default class WorkflowRunner {
         };
     }
 
-    _buildEasyFl9bOutpaintPrompt(params = {}, assets = {}) {
-        const promptText = String(params.prompt ?? this._getGlobalPromptText?.() ?? "").trim();
+    _withOutpaintPromptSuffix(text) {
+        const suffix = "outpaint black part of image";
+        const prompt = String(text || "").trim();
+        if (!prompt) return suffix;
+        return prompt.toLowerCase().includes(suffix) ? prompt : `${prompt}, ${suffix}`;
+    }
+
+    _buildEasyUniCanvasOutpaintPrompt(params = {}, assets = {}) {
+        const promptText = this._withOutpaintPromptSuffix(params.prompt ?? this._getGlobalPromptText?.() ?? "");
         const negativeText = String(params.negativePrompt ?? this._getGlobalNegativePromptText?.() ?? "");
         const model = String(params.generationModel || params.modelChoice || this.unetModel || "").trim();
         const vae = String(params.vaeModel || this.vaeModel || "").trim();
         const clip = String(params.clipModel || this.clip1Model || "").trim();
         const clipType = String(params.clipType || this.clipType || "flux2").trim();
-        const sampler = String(params.fl9bSampler || "res_2s").trim();
-        const steps = Math.max(1, Math.round(Number(params.steps ?? this.steps ?? 8) || 8));
-        const cfg = Number(params.cfg ?? this.cfg ?? 1) || 1;
+        const sampler = "euler";
+        const scheduler = "simple";
+        const steps = 4;
+        const cfg = 1;
         const rawSeed = Number(params.seed ?? this.seed);
         const seed = Number.isFinite(rawSeed) && rawSeed >= 0
             ? Math.floor(rawSeed)
             : Math.floor(Math.random() * 1125899906842624);
         const width = Math.max(64, Math.round(Number(params.width ?? this.easyCanvasWidth ?? this.canvasWidth) || 1024));
         const height = Math.max(64, Math.round(Number(params.height ?? this.easyCanvasHeight ?? this.canvasHeight) || 1024));
-        const outpaint = params.outpaint || {};
-        const left = Math.max(0, Math.round(Number(outpaint.left) || 0));
-        const top = Math.max(0, Math.round(Number(outpaint.top) || 0));
-        const right = Math.max(0, Math.round(Number(outpaint.right) || 0));
-        const bottom = Math.max(0, Math.round(Number(outpaint.bottom) || 0));
         const sourceImage = this._easyAssetLoadImageValue(assets.source);
+        const maskImage = this._easyAssetLoadImageValue(assets.mask);
 
-        if (!model) throw new Error("Easy FL9B outpaint: choose an installed Flux/Klein model in Settings.");
-        if (!vae) throw new Error("Easy FL9B outpaint: choose an installed VAE in Settings.");
-        if (!clip) throw new Error("Easy FL9B outpaint: choose an installed CLIP/text encoder in Settings.");
-        if (!sourceImage) throw new Error("Easy FL9B outpaint: source image is missing.");
+        if (!model) throw new Error("Easy outpaint: choose an installed Flux/Klein model in Settings.");
+        if (!vae) throw new Error("Easy outpaint: choose an installed VAE in Settings.");
+        if (!clip) throw new Error("Easy outpaint: choose an installed CLIP/text encoder in Settings.");
+        if (!sourceImage) throw new Error("Easy outpaint: source image is missing.");
+        if (!maskImage) throw new Error("Easy outpaint: mask image is missing.");
 
         const prompt = {};
         let nextId = 1;
         const id = () => String(nextId++);
 
         const idModel = id();
-        prompt[idModel] = {
-            class_type: "UNETLoader",
-            inputs: { unet_name: model, weight_dtype: "default" },
-        };
+        const isGgufModel = /\.gguf$/i.test(model);
+        prompt[idModel] = isGgufModel
+            ? { class_type: "UnetLoaderGGUF", inputs: { unet_name: model } }
+            : { class_type: "UNETLoader", inputs: { unet_name: model, weight_dtype: "default" } };
         let modelOut = idModel;
         const addLora = (name, strength) => {
             const loraName = String(name || "").trim();
@@ -894,12 +828,6 @@ export default class WorkflowRunner {
         if (this.lora2Enabled && this.lora2Model) addLora(this.lora2Model, this.lora2Strength);
         if (this.lora3Enabled && this.lora3Model) addLora(this.lora3Model, this.lora3Strength);
 
-        const idSampling = id();
-        prompt[idSampling] = {
-            class_type: "ModelSamplingAuraFlow",
-            inputs: { model: [modelOut, 0], shift: Number(params.fl9bShift ?? this.auraFlowShift ?? 7) || 7 },
-        };
-
         const idClip = id();
         prompt[idClip] = {
             class_type: "CLIPLoader",
@@ -909,24 +837,22 @@ export default class WorkflowRunner {
         prompt[idVae] = { class_type: "VAELoader", inputs: { vae_name: vae } };
         const idLoad = id();
         prompt[idLoad] = { class_type: "LoadImage", inputs: { image: sourceImage, upload: "image" } };
-        const idPad = id();
-        prompt[idPad] = {
-            class_type: "ImagePadKJ",
-            inputs: {
-                image: [idLoad, 0],
-                left,
-                right,
-                top,
-                bottom,
-                extra_padding: 0,
-                pad_mode: "color",
-                color: "0, 0, 0",
-            },
-        };
+        const idMaskLoad = id();
+        prompt[idMaskLoad] = { class_type: "LoadImage", inputs: { image: maskImage, upload: "image" } };
         const idEncode = id();
         prompt[idEncode] = {
             class_type: "VAEEncode",
-            inputs: { pixels: [idPad, 0], vae: [idVae, 0] },
+            inputs: { pixels: [idLoad, 0], vae: [idVae, 0] },
+        };
+        const idMask = id();
+        prompt[idMask] = {
+            class_type: "ImageToMask",
+            inputs: { image: [idMaskLoad, 0], channel: "red" },
+        };
+        const idMaskedLatent = id();
+        prompt[idMaskedLatent] = {
+            class_type: "SetLatentNoiseMask",
+            inputs: { samples: [idEncode, 0], mask: [idMask, 0] },
         };
         const idPositive = id();
         prompt[idPositive] = {
@@ -943,15 +869,20 @@ export default class WorkflowRunner {
             class_type: "ReferenceLatent",
             inputs: { conditioning: [idPositive, 0], latent: [idEncode, 0] },
         };
+        const idNegativeZero = id();
+        prompt[idNegativeZero] = {
+            class_type: "ConditioningZeroOut",
+            inputs: { conditioning: [idNegative, 0] },
+        };
         const idNegativeRef = id();
         prompt[idNegativeRef] = {
             class_type: "ReferenceLatent",
-            inputs: { conditioning: [idNegative, 0], latent: [idEncode, 0] },
+            inputs: { conditioning: [idNegativeZero, 0], latent: [idEncode, 0] },
         };
         const idGuider = id();
         prompt[idGuider] = {
             class_type: "CFGGuider",
-            inputs: { model: [idSampling, 0], positive: [idPositiveRef, 0], negative: [idNegativeRef, 0], cfg },
+            inputs: { model: [modelOut, 0], positive: [idPositiveRef, 0], negative: [idNegativeRef, 0], cfg },
         };
         const idNoise = id();
         prompt[idNoise] = { class_type: "RandomNoise", inputs: { noise_seed: seed } };
@@ -959,11 +890,6 @@ export default class WorkflowRunner {
         prompt[idSampler] = { class_type: "KSamplerSelect", inputs: { sampler_name: sampler } };
         const idSigmas = id();
         prompt[idSigmas] = { class_type: "Flux2Scheduler", inputs: { steps, width, height } };
-        const idLatent = id();
-        prompt[idLatent] = {
-            class_type: "EmptyFlux2LatentImage",
-            inputs: { width, height, batch_size: 1 },
-        };
         const idSample = id();
         prompt[idSample] = {
             class_type: "SamplerCustomAdvanced",
@@ -972,7 +898,7 @@ export default class WorkflowRunner {
                 guider: [idGuider, 0],
                 sampler: [idSampler, 0],
                 sigmas: [idSigmas, 0],
-                latent_image: [idLatent, 0],
+                latent_image: [idMaskedLatent, 0],
             },
         };
         const idDecode = id();
@@ -993,12 +919,15 @@ export default class WorkflowRunner {
                 steps,
                 cfg,
                 sampler,
-                scheduler: "flux2",
+                scheduler,
                 denoise: 1,
                 width,
                 height,
                 mode: "outpaint",
-                workflow: "FL9B_OUTPAIN.json",
+                workflow: "unicanvas_masked_latent_outpaint_builtin",
+                source: sourceImage,
+                mask: maskImage,
+                acceptRequired: true,
             },
         };
     }
@@ -1064,7 +993,7 @@ export default class WorkflowRunner {
         if (!url) return false;
         this.eventBus.emit("workflow:phase", { index: 4, count: 4, phase: "Result saved", phaseProgress: 100 });
         this.eventBus.emit("workflow:progress", { percent: 100 });
-        this.eventBus.emit("workflow:image", { url, images, promptId, mode });
+        this.eventBus.emit("workflow:image", { name, url, images, promptId, mode });
         this.eventBus.emit("workflow:final", { name, url, images, data: { prompt_id: promptId, mode } });
         this.eventBus.emit("workflow:finished", { promptId, mode });
         this.eventBus.emit("workflow:complete", { promptId, mode });
@@ -1190,7 +1119,7 @@ export default class WorkflowRunner {
                 };
             }
             const sourceAsset = await this._saveEasyStandaloneAsset(sourceImageDataUrl, `goyai_easy_${mode}_source`, {
-                gallery: true,
+                gallery: mode !== "outpaint",
                 gallery_prefix: `goyai_easy_${mode}_before`,
             });
             if (sourceAsset?.gallery_url) {

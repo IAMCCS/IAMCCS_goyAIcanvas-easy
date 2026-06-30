@@ -19,7 +19,7 @@ export default class EasyMode {
 
     async _load() {
         try {
-            const module = await import('./EasyModeFull.js?v=20260630_EASY_OUTPAINT_CONDITIONING01');
+            const module = await import('./EasyModeFull.js?v=20260630_EASY_OUTPAINT_ACCEPT02');
             if (this.disposed) return;
             const FullMode = module?.default;
             if (typeof FullMode !== 'function') throw new Error('full mode export missing');

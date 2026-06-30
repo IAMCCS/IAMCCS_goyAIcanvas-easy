@@ -169,6 +169,31 @@ def _easy_output_base_dir() -> str:
     return path
 
 
+def _gallery_hidden_path() -> str:
+    return os.path.join(_asset_base_dir(), "gallery_hidden.json")
+
+
+def _load_gallery_hidden() -> set[str]:
+    try:
+        with open(_gallery_hidden_path(), "r", encoding="utf-8") as handle:
+            data = json.load(handle)
+    except Exception:
+        return set()
+    values = data.get("hidden") if isinstance(data, dict) else data
+    if not isinstance(values, list):
+        return set()
+    return {_safe_gallery_name(item) for item in values if _safe_gallery_name(item)}
+
+
+def _save_gallery_hidden(hidden: set[str]) -> None:
+    path = _gallery_hidden_path()
+    tmp_path = f"{path}.tmp"
+    payload = {"hidden": sorted(_safe_gallery_name(item) for item in hidden if _safe_gallery_name(item))}
+    with open(tmp_path, "w", encoding="utf-8") as handle:
+        json.dump(payload, handle, indent=2)
+    os.replace(tmp_path, path)
+
+
 def _safe_gallery_name(value: str) -> str:
     name = str(value or "").replace("\\", "/").strip().lstrip("/")
     parts = [part for part in name.split("/") if part and part not in {".", ".."}]
@@ -414,6 +439,7 @@ def _register_routes() -> None:
     @PromptServer.instance.routes.get("/iamccs/goyai_easy/gallery/list")
     async def iamccs_goyai_easy_gallery_list(request):
         base = _easy_output_base_dir()
+        hidden = _load_gallery_hidden()
         items = []
         for root, _dirs, files in os.walk(base):
             for filename in files:
@@ -421,6 +447,8 @@ def _register_routes() -> None:
                     continue
                 path = os.path.join(root, filename)
                 rel = os.path.relpath(path, base).replace("\\", "/")
+                if rel in hidden:
+                    continue
                 try:
                     mtime = os.path.getmtime(path)
                 except OSError:
@@ -433,6 +461,28 @@ def _register_routes() -> None:
                 })
         items.sort(key=lambda item: item.get("mtime", 0), reverse=True)
         return web.json_response({"items": items[:80], "folder": EASY_OUTPUT_SUBFOLDER, "build": BUILD})
+
+    @PromptServer.instance.routes.post("/iamccs/goyai_easy/gallery/hide")
+    async def iamccs_goyai_easy_gallery_hide(request):
+        payload = await request.json()
+        name = _safe_gallery_name(payload.get("name", ""))
+        if not name:
+            return web.json_response({"error": "missing gallery item name"}, status=400)
+        hidden = _load_gallery_hidden()
+        hidden.add(name)
+        _save_gallery_hidden(hidden)
+        return web.json_response({"ok": True, "name": name, "hidden_count": len(hidden)})
+
+    @PromptServer.instance.routes.post("/iamccs/goyai_easy/gallery/show")
+    async def iamccs_goyai_easy_gallery_show(request):
+        payload = await request.json()
+        name = _safe_gallery_name(payload.get("name", ""))
+        if not name:
+            return web.json_response({"error": "missing gallery item name"}, status=400)
+        hidden = _load_gallery_hidden()
+        hidden.discard(name)
+        _save_gallery_hidden(hidden)
+        return web.json_response({"ok": True, "name": name, "hidden_count": len(hidden)})
 
     @PromptServer.instance.routes.get("/iamccs/goyai_easy/gallery/get")
     async def iamccs_goyai_easy_gallery_get(request):

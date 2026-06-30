@@ -1,10 +1,10 @@
 import UIHelpers from "../utils/UIHelpers.js";
 import { debugTrace } from "../utils/DebugTrace.js";
 import Constants from "../utils/Constants.js";
-import EasyCanvasKernel from "./EasyCanvasKernel.js?v=20260630_EASY_OUTPAINT_CONDITIONING01";
-import TransformMath from "../engine/EasyTransformMath.js?v=20260630_EASY_OUTPAINT_CONDITIONING01";
-import EasyCanvasDocument from "./EasyCanvasDocument.js?v=20260630_EASY_OUTPAINT_CONDITIONING01";
-import EasyCropController from "./EasyCropController.js?v=20260630_EASY_OUTPAINT_CONDITIONING01";
+import EasyCanvasKernel from "./EasyCanvasKernel.js?v=20260630_EASY_OUTPAINT_ACCEPT02";
+import TransformMath from "../engine/EasyTransformMath.js?v=20260630_EASY_OUTPAINT_ACCEPT02";
+import EasyCanvasDocument from "./EasyCanvasDocument.js?v=20260630_EASY_OUTPAINT_ACCEPT02";
+import EasyCropController from "./EasyCropController.js?v=20260630_EASY_OUTPAINT_ACCEPT02";
 
 export default class CanvasView {
     constructor(hostElement, eventBus, layerManager, maskManager) {
@@ -443,7 +443,7 @@ export default class CanvasView {
             }, 100);
         });
         // When a single image is detected/imported, resize canvas to match it
-        this.eventBus.on("canvas:image:imported", ({ originalWidth, originalHeight }) => {
+        this.eventBus.on("canvas:image:imported", ({ originalWidth, originalHeight, source }) => {
             if (Date.now() < this._ignoreImportedResizeUntil) {
                 console.log("[CanvasView] Ignored canvas:image:imported during clear guard", {
                     originalWidth,
@@ -460,7 +460,7 @@ export default class CanvasView {
                 });
                 this.resize(originalWidth, originalHeight);
                 // Broadcast detection for UI panels
-                this.eventBus.emit("canvas:image:detected", { width: originalWidth, height: originalHeight });
+                this.eventBus.emit("canvas:image:detected", { width: originalWidth, height: originalHeight, source });
             }
         });
         

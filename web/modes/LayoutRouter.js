@@ -1,4 +1,4 @@
-import { loadModeModule, normalizeMode, shouldReuseMode } from "../core/ModeRegistry.js?v=20260630_EASY_OUTPAINT_CONDITIONING01";
+import { loadModeModule, normalizeMode, shouldReuseMode } from "../core/ModeRegistry.js?v=20260630_EASY_OUTPAINT_ACCEPT02";
 
 export default class LayoutRouter {
     constructor(eventBus, modules, options = {}) {
