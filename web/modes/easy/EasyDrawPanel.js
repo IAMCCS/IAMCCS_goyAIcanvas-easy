@@ -348,6 +348,7 @@ export default class EasyDrawPanel {
 
         this.modules?.layerManager?.moveToTop?.(layer.id);
         this.modules?.layerManager?.selectLayer?.(layer.id);
+        this.eventBus.emit('canvas:stroke:target', { layerId: layer.id, role, mode: this.state.easyMode });
         debugTrace('[EasyDrawPanel] ensure-intent-layer:selected', {
             selectedLayerId: this.modules?.layerManager?.getActiveLayerId?.() || null,
             selectedLayerName: this.modules?.layerManager?.getActiveLayer?.()?.name || null,

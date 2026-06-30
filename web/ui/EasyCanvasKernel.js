@@ -9,6 +9,7 @@ export default class EasyCanvasKernel {
         this.maskCache = new Map();
         this.activeTool = "cursor";
         this.drawing = null;
+        this.nextStrokeLayerId = "";
         this.transforming = null;
         this.renderQueued = false;
         this.cropActive = false;
@@ -28,6 +29,9 @@ export default class EasyCanvasKernel {
         this.eventBus?.on?.("canvas:refresh", () => this.requestRender());
         this.eventBus?.on?.("background:color:update", () => this.requestRender());
         this.eventBus?.on?.("tool:change", (tool) => { this.activeTool = String(tool || "cursor"); });
+        this.eventBus?.on?.("canvas:stroke:target", ({ layerId } = {}) => {
+            this.nextStrokeLayerId = String(layerId || "");
+        });
         this.eventBus?.on?.("canvas:crop:state", ({ active } = {}) => { this.cropActive = !!active; });
         this.eventBus?.on?.("layer:delete", (id) => {
             if (!id) return;
@@ -79,8 +83,12 @@ export default class EasyCanvasKernel {
         this.ctx.save();
         this.ctx.globalAlpha = 1;
         this.ctx.globalCompositeOperation = "source-over";
-        this.ctx.fillStyle = this._backgroundColor(layers);
-        this.ctx.fillRect(0, 0, width, height);
+        this.ctx.clearRect(0, 0, width, height);
+        const backgroundColor = this._backgroundColor(layers);
+        if (backgroundColor !== "transparent") {
+            this.ctx.fillStyle = backgroundColor;
+            this.ctx.fillRect(0, 0, width, height);
+        }
         this.ctx.restore();
 
         for (const layer of layers) {
@@ -431,6 +439,14 @@ export default class EasyCanvasKernel {
     }
 
     _ensureWritableLayer() {
+        if (this.nextStrokeLayerId) {
+            const targeted = this.layerManager?.getLayerById?.(this.nextStrokeLayerId);
+            this.nextStrokeLayerId = "";
+            if (targeted && targeted.id !== "layer_background" && !targeted.locked) {
+                this.layerManager?.selectLayer?.(targeted.id);
+                return targeted;
+            }
+        }
         const active = this.layerManager?.getActiveLayer?.();
         if (active && active.id !== "layer_background" && !active.locked) return active;
         const layer = this.layerManager?.addLayer?.("Easy Paint Layer");
@@ -559,6 +575,7 @@ export default class EasyCanvasKernel {
 
     _normalizeColor(value) {
         const raw = String(value || "").trim();
+        if (raw.toLowerCase() === "transparent") return "transparent";
         if (/^#[0-9a-f]{6}$/i.test(raw)) return raw;
         if (/^#[0-9a-f]{3}$/i.test(raw)) return `#${raw.slice(1).split("").map((char) => `${char}${char}`).join("")}`;
         return "#000000";

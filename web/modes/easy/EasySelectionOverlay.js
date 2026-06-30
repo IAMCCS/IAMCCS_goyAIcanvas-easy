@@ -78,6 +78,13 @@ export default class EasySelectionOverlay {
             if (payload.mode && payload.mode !== this.mode) return;
             this.clearSelection();
         }));
+        this._unsubs.push(this.eventBus.on('easy:outpaint:reset', () => {
+            const previousMode = this.mode;
+            this.mode = 'outpaint';
+            this.clearSelection();
+            this.setEnabled(false);
+            this.mode = previousMode;
+        }));
         this._unsubs.push(this.eventBus.on('canvas:resize', () => this.clearSelection()));
         this._unsubs.push(this.eventBus.on('project:clear', () => this.clearSelection()));
     }

@@ -11,8 +11,11 @@ export default class EasyCanvasDocument {
         const ctx = out.getContext("2d", { willReadFrequently: true });
         if (!ctx) return out;
 
-        ctx.fillStyle = this.backgroundColor();
-        ctx.fillRect(0, 0, out.width, out.height);
+        const backgroundColor = this.backgroundColor();
+        if (backgroundColor !== "transparent") {
+            ctx.fillStyle = backgroundColor;
+            ctx.fillRect(0, 0, out.width, out.height);
+        }
 
         const layers = this.layerManager?.getLayers?.() || [];
         for (const layer of layers) {
@@ -54,6 +57,7 @@ export default class EasyCanvasDocument {
     backgroundColor() {
         const layer = this.layerManager?.getLayerById?.("layer_background");
         const value = String(layer?.metadata?.backgroundColor || "").trim();
+        if (value.toLowerCase() === "transparent") return "transparent";
         if (/^#[0-9a-f]{6}$/i.test(value)) return value;
         if (/^#[0-9a-f]{3}$/i.test(value)) {
             return `#${value.slice(1).split("").map((char) => `${char}${char}`).join("")}`;

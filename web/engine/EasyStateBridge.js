@@ -1,5 +1,3 @@
-import Constants from "../utils/Constants.js";
-
 export default class EasyStateBridge {
     constructor(eventBus) {
         this.eventBus = eventBus;
@@ -70,14 +68,6 @@ export default class EasyStateBridge {
     }
 
     async pullLastGeneration() {
-        try {
-            const response = await fetch(`${Constants.API_BASE}/last-generation`, { cache: "no-store" });
-            if (response?.ok) {
-                const data = await response.json();
-                this.eventBus?.emit?.("bridge:state:pulled", { last_generation: data });
-                return data;
-            }
-        } catch (_e) {}
         return this._state?.last_generation || null;
     }
 }

@@ -1,4 +1,4 @@
-await import("/iamccs/goyai_easy_static/index.js?v=20260630_EASY_CLEAN_CORE26");
+await import("/iamccs/goyai_easy_static/index.js?v=20260630_EASY_OUTPAINT_CONDITIONING01");
 
 try {
     window.__IAMCCS_RUNTIME_DIAGNOSTICS__ = {
@@ -8,3 +8,5 @@ try {
         persistenceFix: "unicanvas-import",
     };
 } catch (_e) {}
+
+

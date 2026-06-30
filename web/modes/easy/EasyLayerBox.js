@@ -52,16 +52,23 @@ export default class EasyLayerBox {
         const safeName = this._escape(layer.id === "layer_background" ? "Background" : (layer.name || "Layer"));
         const isBackground = layer.id === "layer_background";
         const backgroundColor = this._backgroundColorValue(layer);
+        const backgroundIsTransparent = backgroundColor === "transparent";
+        const pickerColor = backgroundIsTransparent ? "#101318" : backgroundColor;
         const thumbStyle = layer.bitmap
             ? `background-image:url('${String(layer.bitmap).replace(/'/g, "%27")}')`
-            : `background:${this._escapeAttr(layer.metadata?.backgroundColor || (locked ? backgroundColor : "#101318"))}`;
+            : (backgroundIsTransparent
+                ? ""
+                : `background:${this._escapeAttr(layer.metadata?.backgroundColor || (locked ? backgroundColor : "#101318"))}`);
         const thumb = isBackground
-            ? `<label class="easy-layer-box__thumb easy-layer-box__thumb--background" style="${thumbStyle}" title="Choose background color">
-                    <input type="color" class="easy-layer-box__bg-color-input" data-action="background-color" value="${this._escapeAttr(backgroundColor)}" aria-label="Background color" />
-               </label>`
+            ? `<div class="easy-layer-box__bg-control">
+                    <label class="easy-layer-box__thumb easy-layer-box__thumb--background${backgroundIsTransparent ? " is-transparent" : ""}" style="${thumbStyle}" title="Choose background color">
+                        <input type="color" class="easy-layer-box__bg-color-input" data-action="background-color" value="${this._escapeAttr(pickerColor)}" aria-label="Background color" />
+                    </label>
+                    <button type="button" class="easy-layer-box__transparent${backgroundIsTransparent ? " is-active" : ""}" data-action="background-transparent" title="Transparent background">Alpha</button>
+               </div>`
             : `<div class="easy-layer-box__thumb" style="${thumbStyle}"></div>`;
         return `
-            <div class="easy-layer-box__layer${active ? " is-active" : ""}${locked ? " is-locked" : ""}" data-layer-id="${this._escapeAttr(layer.id)}" ${locked ? "" : 'draggable="true"'}>
+            <div class="easy-layer-box__layer${isBackground ? " easy-layer-box__layer--background" : ""}${active ? " is-active" : ""}${locked ? " is-locked" : ""}" data-layer-id="${this._escapeAttr(layer.id)}" ${locked ? "" : 'draggable="true"'}>
                 <button type="button" class="easy-layer-box__drag" data-action="drag-layer" ${locked ? "disabled" : ""} title="Drag layer">::</button>
                 <button type="button" class="easy-layer-box__eye" data-action="toggle-visible" title="${visible ? "Hide" : "Show"}">${visible ? "On" : "Off"}</button>
                 ${thumb}
@@ -187,10 +194,21 @@ export default class EasyLayerBox {
                     this._backgroundPickerActive = false;
                     const layer = this.layerManager?.getLayerById?.("layer_background");
                     const color = this._backgroundColorValue(layer);
-                    event.target.value = color;
+                    event.target.value = color === "transparent" ? "#101318" : color;
                     const thumb = row.querySelector(".easy-layer-box__thumb--background");
-                    if (thumb) thumb.style.background = color;
+                    if (thumb) {
+                        thumb.classList.toggle("is-transparent", color === "transparent");
+                        thumb.style.background = color === "transparent" ? "" : color;
+                    }
                 }
+            });
+            row.querySelector("[data-action='background-transparent']")?.addEventListener("click", (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                this._pendingBackgroundColor = null;
+                this._backgroundPickerActive = false;
+                this._setBackgroundColor("transparent");
+                this.render();
             });
         });
     }
@@ -226,6 +244,7 @@ export default class EasyLayerBox {
 
     _backgroundColorValue(layer) {
         const value = String(layer?.metadata?.backgroundColor || "").trim();
+        if (value.toLowerCase() === "transparent") return "transparent";
         if (/^#[0-9a-f]{6}$/i.test(value)) return value;
         if (/^#[0-9a-f]{3}$/i.test(value)) {
             return `#${value.slice(1).split("").map((char) => `${char}${char}`).join("")}`;
@@ -237,7 +256,10 @@ export default class EasyLayerBox {
         const value = this._backgroundColorValue({ metadata: { backgroundColor: color } });
         this._pendingBackgroundColor = value;
         const thumb = row?.querySelector?.(".easy-layer-box__thumb--background");
-        if (thumb) thumb.style.background = value;
+        if (thumb) {
+            thumb.classList.remove("is-transparent");
+            thumb.style.background = value;
+        }
         const layer = this.layerManager?.getLayerById?.("layer_background");
         if (!layer) return;
         layer.locked = true;

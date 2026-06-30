@@ -66,6 +66,12 @@ export default class EasySettingsPanel {
 
         this._unsubs.push(this.eventBus.on('easy:settings:open', () => this.show()));
         this._unsubs.push(this.eventBus.on('easy:settings:close', () => this.hide()));
+        this._unsubs.push(this.eventBus.on('easy:seed:used', ({ seed } = {}) => {
+            const value = Math.max(0, Math.floor(Number(seed) || 0));
+            if (!value && value !== 0) return;
+            this.settings.seedValue = value;
+            if (this.open) this.render();
+        }));
         this.load();
     }
 
@@ -220,7 +226,7 @@ export default class EasySettingsPanel {
                 </select>
             </label>
             <label class="easy-settings-field">
-                <span>Locked Seed</span>
+                <span>${this.settings.seedMode === 'locked' ? 'Locked Seed' : 'Last Seed'}</span>
                 <input type="number" min="0" step="1" data-setting-key="seedValue" value="${escapeHtml(this.settings.seedValue)}" />
             </label>
         `;

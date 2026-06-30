@@ -39,10 +39,11 @@ export function getCompatibleSeedVR2Models(models = {}, fallbackPool = []) {
 }
 
 export async function fetchModelCategory(category) {
-    const response = await fetch(`/iamccs/goyacanvas/models?category=${encodeURIComponent(category)}`, { cache: 'no-store' })
+    const payload = await fetch('/iamccs/goyai_easy/settings', { cache: 'no-store' })
         .then((result) => result.json())
-        .catch(() => ({ items: [] }));
-    return dedupeModelNames(response?.items || []);
+        .catch(() => ({ models: {} }));
+    const models = payload?.models || {};
+    return dedupeModelNames(models?.[category] || []);
 }
 
 export async function loadInstalledGenerationModelCatalog(options = {}) {

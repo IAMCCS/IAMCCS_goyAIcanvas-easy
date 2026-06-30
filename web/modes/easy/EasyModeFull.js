@@ -3,14 +3,14 @@
  * Entry point for EASY mode - beginner-friendly UI
  */
 
-import EasyPanel from './EasyPanel.js?v=20260630_EASY_CLEAN_CORE26';
-import EasyGallery from './EasyGallery.js?v=20260630_EASY_CLEAN_CORE26';
-import EasyShortcutRail from './EasyShortcutRail.js?v=20260630_EASY_CLEAN_CORE26';
-import EasyDrawPanel from './EasyDrawPanel.js?v=20260630_EASY_CLEAN_CORE26';
-import EasyLayerBox from './EasyLayerBox.js?v=20260630_EASY_CLEAN_CORE26';
-import EasySelectionOverlay from './EasySelectionOverlay.js?v=20260630_EASY_CLEAN_CORE26';
-import EasyProgressPanel from './EasyProgressPanel.js?v=20260630_EASY_CLEAN_CORE26';
-import EasyPromptPanel from './EasyPromptPanel.js?v=20260630_EASY_CLEAN_CORE26';
+import EasyPanel from './EasyPanel.js?v=20260630_EASY_OUTPAINT_CONDITIONING01';
+import EasyGallery from './EasyGallery.js?v=20260630_EASY_OUTPAINT_CONDITIONING01';
+import EasyShortcutRail from './EasyShortcutRail.js?v=20260630_EASY_OUTPAINT_CONDITIONING01';
+import EasyDrawPanel from './EasyDrawPanel.js?v=20260630_EASY_OUTPAINT_CONDITIONING01';
+import EasyLayerBox from './EasyLayerBox.js?v=20260630_EASY_OUTPAINT_CONDITIONING01';
+import EasySelectionOverlay from './EasySelectionOverlay.js?v=20260630_EASY_OUTPAINT_CONDITIONING01';
+import EasyProgressPanel from './EasyProgressPanel.js?v=20260630_EASY_OUTPAINT_CONDITIONING01';
+import EasyPromptPanel from './EasyPromptPanel.js?v=20260630_EASY_OUTPAINT_CONDITIONING01';
 
 export default class EasyMode {
     constructor(workspace, eventBus, modules) {
@@ -48,7 +48,7 @@ export default class EasyMode {
         this.workspace.appendChild(this.container);
 
         // SHARED CANVAS CONTRACT:
-        // Easy mode re-uses the original .goya-canvas-area (shared with Advanced).
+        // Easy mode mounts into the existing canvas area created by the editor shell.
         // LayoutRouter.mountEasyMode() hides toolbar/panels but keeps canvas-area
         // visible. The .easy-mode-layout grid positions it at column 2.
         // Do NOT create a second canvas here.
@@ -92,6 +92,10 @@ export default class EasyMode {
 
         const onFinal = ({ url, name, data } = {}) => {
             if (!url) return;
+            const mode = String(data?.mode || data?.intentMode || '').toLowerCase();
+            if (mode === 'outpaint') {
+                this.eventBus.emit('easy:outpaint:reset', { reason: 'generation-complete' });
+            }
             const baselineDataUrl = this._lastSourcePayload?.dataUrl || this.modules?.canvasView?._preRunCompositeDataUrl || '';
             const comparePayload = {
                 dataUrl: url,
@@ -108,7 +112,6 @@ export default class EasyMode {
                 this.eventBus.emit('canvas:compare:set', comparePayload);
                 this.eventBus.emit('compare:toggle', { enabled: true, source: 'easy-final-compare' });
             }
-            const mode = String(data?.mode || data?.intentMode || '').toLowerCase();
             const canvasImportModes = new Set(['draw', 'outpaint', 'inpaint', 'z', 't2i', 'txt2img', 'text_to_image', 'img2img', 'i2i', 'upscale']);
             if (canvasImportModes.has(mode)) {
                 this._importFinalImageToCanvas(url, name || `Easy ${mode} result`);
@@ -116,6 +119,20 @@ export default class EasyMode {
         };
         this.eventBus.on('workflow:final', onFinal);
         this._unsubs.push(() => this.eventBus.off('workflow:final', onFinal));
+
+        const onWorkflowImage = ({ url, mode, name } = {}) => {
+            if (!url) return;
+            const normalizedMode = String(mode || '').toLowerCase();
+            if (normalizedMode === 'outpaint') {
+                this.eventBus.emit('easy:outpaint:reset', { reason: 'workflow-image' });
+            }
+            const canvasImportModes = new Set(['draw', 'outpaint', 'inpaint', 'z', 't2i', 'txt2img', 'text_to_image', 'img2img', 'i2i', 'upscale']);
+            if (canvasImportModes.has(normalizedMode)) {
+                this._importFinalImageToCanvas(url, name || `Easy ${normalizedMode} result`);
+            }
+        };
+        this.eventBus.on('workflow:image', onWorkflowImage);
+        this._unsubs.push(() => this.eventBus.off('workflow:image', onWorkflowImage));
 
         const onCompareToggle = ({ enabled } = {}) => {
             this._compareEnabled = !!enabled;
@@ -198,5 +215,7 @@ export default class EasyMode {
         this.container = null;
     }
 }
+
+
 
 

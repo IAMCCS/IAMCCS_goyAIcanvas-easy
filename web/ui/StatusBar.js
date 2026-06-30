@@ -7,6 +7,8 @@ export default class StatusBar {
         this.promptManager = promptManager;
         this.text = "";
         this.tickerMessages = [];
+        this._lastTickerText = "";
+        this._lastTickerAt = 0;
         this.infoEl = document.createElement("div");
         this.infoEl.className = "goya-statusbar__info";
         this.tickerEl = document.createElement("div");
@@ -55,6 +57,11 @@ export default class StatusBar {
         this.eventBus.on("workflow:finished", () => this._pushTick("Workflow finished"));
         this.eventBus.on("workflow:complete", () => this._pushTick("Workflow complete"));
 
+        this.eventBus.on("easy:seed:used", ({ seed } = {}) => {
+            const value = Math.max(0, Math.floor(Number(seed) || 0));
+            this._pushTick(`Seed used: ${value}`);
+        });
+
         this.eventBus.on("workflow:error", (payload = {}) => {
             const message = payload?.message || payload?.error || "unknown error";
             this._pushTick(`Workflow error: ${message}`);
@@ -63,7 +70,7 @@ export default class StatusBar {
         this.eventBus.on("status:message", (text) => {
             if (!text) return;
             const message = typeof text === "string" ? text : (text.text || text.message || "");
-            if (message) this._pushTick(String(message));
+            if (message && !/^(Waiting for ComfyUI history:|ComfyUI still processing\b)/i.test(String(message))) this._pushTick(String(message));
         });
 
         this.eventBus.on("image:histogram:ready", () => this._pushTick("Histogram updated"));
@@ -111,6 +118,10 @@ export default class StatusBar {
         try {
             const text = String(message || "").trim();
             if (!text) return;
+            const now = Date.now();
+            if (text === this._lastTickerText && now - this._lastTickerAt < 8000) return;
+            this._lastTickerText = text;
+            this._lastTickerAt = now;
             this.tickerMessages.push(text);
             if (this.tickerMessages.length > 10) this.tickerMessages.shift();
             this._renderTicker();

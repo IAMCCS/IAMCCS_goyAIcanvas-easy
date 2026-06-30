@@ -4,11 +4,13 @@
       "zModel": "z_image_turbo_fp8_e5m2.safetensors",
       "zClip": "qwen_3_4b.safetensors",
       "zVae": "ae.safetensors",
-      "fl2Model": "flux-2-klein-4b.safetensors",
-      "fl2Clip": "qwen_3_4b.safetensors",
+      "fl2Model": "flux-2-klein-9b-fp8.safetensors",
+      "fl2Clip": "qwen_3_8b_fp8mixed.safetensors",
       "fl2Vae": "flux2-vae.safetensors",
       "seedvr2DitModel": "seedvr2_ema_3b-Q4_K_M.gguf",
       "seedvr2VaeModel": "ema_vae_fp16.safetensors",
+      "seedMode": "randomize",
+      "seedValue": 0,
       "zControlModel": "pornmasterZImage_baseV01.safetensors"
     }
   }

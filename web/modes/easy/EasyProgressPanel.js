@@ -17,6 +17,8 @@ export default class EasyProgressPanel {
         this._api = null;
         this._apiHandlers = [];
         this._unsubs = [];
+        this._lastTickerText = '';
+        this._lastTickerAt = 0;
 
         this._build();
         this._attachListeners();
@@ -26,7 +28,7 @@ export default class EasyProgressPanel {
         this.container.innerHTML = `
             <div class="easy-progress-panel">
                 <h4 class="easy-progress-panel__title">Status</h4>
-                <div class="easy-progress-panel__status" id="easy-status-text">Idle</div>
+                <div class="easy-progress-panel__status" id="easy-status-text" data-state="idle">Idle</div>
                 <div class="easy-progress-panel__bar-group">
                     <label class="easy-progress-panel__label">Progress</label>
                     <div class="easy-progress-panel__bar-track">
@@ -41,7 +43,6 @@ export default class EasyProgressPanel {
                     </div>
                     <span class="easy-progress-panel__pct" id="easy-phase-pct">0/0</span>
                 </div>
-                <div class="easy-progress-panel__ticker" id="easy-ticker"></div>
             </div>
         `;
     }
@@ -61,6 +62,7 @@ export default class EasyProgressPanel {
             this._setStatus('Queued', true);
             this._setProgress(0);
             this._setPhase(1, 4, 25);
+            this._addTicker(`Queued ${this._activePromptId || 'generation'}`);
         });
 
         _on('workflow:finished', () => {
@@ -69,6 +71,7 @@ export default class EasyProgressPanel {
             this._setStatus('Complete');
             this._setProgress(100);
             this._setPhase(4, 4, 100);
+            this._addTicker('Generation complete');
         });
 
         _on('workflow:complete', () => {
@@ -101,7 +104,9 @@ export default class EasyProgressPanel {
             if (!msg) return;
             const text = typeof msg === 'string' ? msg : (msg.text || msg.message || '');
             if (text) {
-                this._addTicker(text);
+                if (!/^(Waiting for ComfyUI history:|ComfyUI still processing\b)/i.test(text)) {
+                    this._addTicker(text);
+                }
                 this._parseProgressFromStatus(text);
             }
         });
@@ -110,6 +115,7 @@ export default class EasyProgressPanel {
             if (!data) return;
             if (data.phase) this._setStatus(String(data.phase), this._running);
             this._setPhase(data.index || 0, data.count || 0, data.phaseProgress ?? data.progress ?? null);
+            if (data.phase) this._addTicker(String(data.phase));
         });
 
         this._attachComfyProgressEvents();
@@ -135,7 +141,7 @@ export default class EasyProgressPanel {
                 const node = event?.detail?.node;
                 if (node == null) {
                     this._setStatus('Finalizing', true);
-                    this._setPhase(4, 4, 92);
+                    this._setPhase(3, 4, 92);
                 } else {
                     this._setStatus(`Executing node ${node}`, true);
                     this._setPhase(3, 4, 75);
@@ -173,9 +179,22 @@ export default class EasyProgressPanel {
 
     _setStatus(text, animatePulse = false) {
         this._statusText = text;
+        this._updateStatusChip(animatePulse);
+    }
+
+    _updateStatusChip(animatePulse = false) {
         const el = this.container.querySelector('#easy-status-text');
         if (el) {
-            el.textContent = text;
+            const status = String(this._statusText || 'Idle').replace(/\s+/g, ' ').trim();
+            const pct = Math.max(0, Math.min(100, Number(this._progressPct) || 0));
+            const lower = status.toLowerCase();
+            const state = lower.startsWith('error') ? 'error'
+                : lower.includes('complete') || lower.includes('saved') ? 'complete'
+                    : this._running || animatePulse ? 'running'
+                        : 'idle';
+            const suffix = state === 'running' && pct > 0 ? ` - ${Math.round(pct)}%` : '';
+            el.textContent = `${status}${suffix}`;
+            el.dataset.state = state;
             el.classList.toggle('easy-progress-panel__status--running', animatePulse);
         }
     }
@@ -186,6 +205,7 @@ export default class EasyProgressPanel {
         const label = this.container.querySelector('#easy-progress-pct');
         if (fill) fill.style.width = `${this._progressPct}%`;
         if (label) label.textContent = `${Math.round(this._progressPct)}%`;
+        this._updateStatusChip(this._running);
     }
 
     _setPhase(index, count, phaseProgress = null) {
@@ -203,9 +223,15 @@ export default class EasyProgressPanel {
     _addTicker(text) {
         const el = this.container.querySelector('#easy-ticker');
         if (!el) return;
+        const clean = String(text || '').replace(/\s+/g, ' ').trim();
+        if (!clean) return;
+        const now = Date.now();
+        if (clean === this._lastTickerText && now - this._lastTickerAt < 8000) return;
+        this._lastTickerText = clean;
+        this._lastTickerAt = now;
         const line = document.createElement('div');
         line.className = 'easy-progress-panel__ticker-line';
-        line.textContent = text;
+        line.textContent = clean;
         el.prepend(line);
         while (el.children.length > 4) el.lastChild.remove();
     }

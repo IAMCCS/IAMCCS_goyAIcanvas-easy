@@ -1,21 +1,21 @@
 import EventBus from "./utils/EventBus.js";
 import Constants from "./utils/Constants.js";
-import CanvasView from "./ui/Canvas.js?v=20260630_EASY_CLEAN_CORE26";
-import CanvasToolbar from "./ui/CanvasToolbar.js?v=20260630_EASY_CLEAN_CORE26";
-import StatusBar from "./ui/StatusBar.js?v=20260630_EASY_CLEAN_CORE26";
-import EasyLayerManager from "./engine/EasyLayerManager.js?v=20260630_EASY_CLEAN_CORE26";
-import EasyMaskManager from "./engine/EasyMaskManager.js?v=20260630_EASY_CLEAN_CORE26";
-import EasyPromptManager from "./engine/EasyPromptManager.js?v=20260630_EASY_CLEAN_CORE26";
-import EasyStateBridge from "./engine/EasyStateBridge.js?v=20260630_EASY_CLEAN_CORE26";
-import WorkflowRunner from "./engine/WorkflowRunner.js?v=20260630_EASY_CLEAN_CORE26";
-import EasySettingsPanel from "./modes/easy/EasySettingsPanel.js?v=20260630_EASY_CLEAN_CORE26";
+import CanvasView from "./ui/Canvas.js?v=20260630_EASY_OUTPAINT_CONDITIONING01";
+import CanvasToolbar from "./ui/CanvasToolbar.js?v=20260630_EASY_OUTPAINT_CONDITIONING01";
+import StatusBar from "./ui/StatusBar.js?v=20260630_EASY_OUTPAINT_CONDITIONING01";
+import EasyLayerManager from "./engine/EasyLayerManager.js?v=20260630_EASY_OUTPAINT_CONDITIONING01";
+import EasyMaskManager from "./engine/EasyMaskManager.js?v=20260630_EASY_OUTPAINT_CONDITIONING01";
+import EasyPromptManager from "./engine/EasyPromptManager.js?v=20260630_EASY_OUTPAINT_CONDITIONING01";
+import EasyStateBridge from "./engine/EasyStateBridge.js?v=20260630_EASY_OUTPAINT_CONDITIONING01";
+import WorkflowRunner from "./engine/WorkflowRunner.js?v=20260630_EASY_OUTPAINT_CONDITIONING01";
+import EasySettingsPanel from "./modes/easy/EasySettingsPanel.js?v=20260630_EASY_OUTPAINT_CONDITIONING01";
 import UIHelpers from "./utils/UIHelpers.js";
-import ModeSwitchBar from "./modes/ModeSwitchBar.js?v=20260630_EASY_CLEAN_CORE26";
-import LayoutRouter from "./modes/LayoutRouter.js?v=20260630_EASY_CLEAN_CORE26";
-import { GOYA_BUILD_INFO, getGoyaBuildLabel } from "./app/BuildInfo.js?v=20260630_EASY_CLEAN_CORE26";
+import ModeSwitchBar from "./modes/ModeSwitchBar.js?v=20260630_EASY_OUTPAINT_CONDITIONING01";
+import LayoutRouter from "./modes/LayoutRouter.js?v=20260630_EASY_OUTPAINT_CONDITIONING01";
+import { GOYA_BUILD_INFO, getGoyaBuildLabel } from "./app/BuildInfo.js?v=20260630_EASY_OUTPAINT_CONDITIONING01";
 
-const EASY_MODE_CSS_URL = new URL("./styles/easy_mode.css", import.meta.url).href + "?v=20260630_EASY_CLEAN_CORE26";
-const NODE_PREVIEW_CSS_URL = new URL("./styles/node_preview.css", import.meta.url).href + "?v=20260630_EASY_CLEAN_CORE26";const EASY_STATE_SCHEMA = "iamccs.goyai.easy.state";
+const EASY_MODE_CSS_URL = new URL("./styles/easy_mode.css", import.meta.url).href + "?v=20260630_EASY_OUTPAINT_CONDITIONING01";
+const NODE_PREVIEW_CSS_URL = new URL("./styles/node_preview.css", import.meta.url).href + "?v=20260630_EASY_OUTPAINT_CONDITIONING01";const EASY_STATE_SCHEMA = "iamccs.goyai.easy.state";
 const EASY_STATE_BUILD = "IAMCCS_GoyAIcanvas_EasyFull_AllInOne_State_20260626";
 let stylesheetInjected = false;
 
@@ -911,7 +911,7 @@ export default class IAMCCS_EasyFullNodeUI {
 
                 // Keep WorkflowRunner generation dimensions in sync with the visible canvas.
                 // Without this, generation/state payloads can keep stale width/height until some
-                // other param changes, making it look like Advanced resize didn't apply.
+                // other param changes, making it look like the resize did not apply.
                 try {
                     if (this.workflowRunner) {
                         this.workflowRunner.canvasWidth = w;
@@ -2270,6 +2270,8 @@ export default class IAMCCS_EasyFullNodeUI {
         return widget.value ?? fallback;
     }
 }
+
+
 
 
 

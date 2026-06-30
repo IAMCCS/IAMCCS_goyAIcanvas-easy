@@ -3,8 +3,8 @@
  * Header bar rendered from ModeRegistry, not hardcoded mode buttons.
  */
 
-import { getModeDefinitions, normalizeMode } from '../core/ModeRegistry.js?v=20260630_EASY_CLEAN_CORE26';
-import { getGoyaBuildLabel } from '../app/BuildInfo.js?v=20260630_EASY_CLEAN_CORE26';
+import { getModeDefinitions, normalizeMode } from '../core/ModeRegistry.js?v=20260630_EASY_OUTPAINT_CONDITIONING01';
+import { getGoyaBuildLabel } from '../app/BuildInfo.js?v=20260630_EASY_OUTPAINT_CONDITIONING01';
 
 export default class ModeSwitchBar {
     constructor(container, eventBus, initialMode = 'easy') {
@@ -78,4 +78,6 @@ export default class ModeSwitchBar {
         return this._escapeText(value).replace(/"/g, '&quot;');
     }
 }
+
+
 

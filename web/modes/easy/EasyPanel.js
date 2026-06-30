@@ -40,8 +40,8 @@ const EASY_T2I_TEMPLATES = {
 
 const EASY_FL2_EDIT_DEFAULTS = {
     clipType: 'flux2',
-    sampler: 'euler',
-    scheduler: 'beta',
+    sampler: 'er_sde',
+    scheduler: 'simple',
     steps: 8,
     cfg: 1.0,
     guidance: 3.5,
@@ -50,6 +50,8 @@ const EASY_FL2_EDIT_DEFAULTS = {
 const EASY_SEEDVR2_DEFAULTS = {
     ditOffloadDevice: 'cuda:0',
 };
+
+const EASY_RANDOM_SEED_MAX = 1125899906842624;
 
 const EASY_LORA_DEFAULTS = {
     lora1Enabled: false,
@@ -61,47 +63,47 @@ const EASY_LORA_DEFAULTS = {
 };
 
 const DIMENSION_PRESETS = [
-    { label: '512×512',   w: 512,  h: 512 },
-    { label: '768×512',   w: 768,  h: 512 },
-    { label: '512×768',   w: 512,  h: 768 },
-    { label: '768×768',   w: 768,  h: 768 },
-    { label: '1024×1024', w: 1024, h: 1024 },
-    { label: '1152×896',  w: 1152, h: 896 },
-    { label: '896×1152',  w: 896,  h: 1152 },
-    { label: '1280×720',  w: 1280, h: 720 },
-    { label: '720×1280',  w: 720,  h: 1280 },
-    { label: '1024×768',  w: 1024, h: 768 },
-    { label: '768×1024',  w: 768,  h: 1024 },
-    { label: '1280×768',  w: 1280, h: 768 },
-    { label: '768×1280',  w: 768,  h: 1280 },
-    { label: '1536×1024', w: 1536, h: 1024 },
-    { label: '1024×1536', w: 1024, h: 1536 },
-    { label: '1920×1088', w: 1920, h: 1088 },
-    { label: '1088×1920', w: 1088, h: 1920 },
-    { label: '2048×2048', w: 2048, h: 2048 },
-    { label: '2048×1024', w: 2048, h: 1024 },
-    { label: '1024×2048', w: 1024, h: 2048 },
-    { label: '1828×1332', w: 1828, h: 1332 },
-    { label: '1828×1556', w: 1828, h: 1556 },
-    { label: '1920×803',  w: 1920, h: 803 },
-    { label: '1998×1080', w: 1998, h: 1080 },
-    { label: '2048×858',  w: 2048, h: 858 },
-    { label: '2048×1080', w: 2048, h: 1080 },
-    { label: '2048×1152', w: 2048, h: 1152 },
-    { label: '2048×1556', w: 2048, h: 1556 },
-    { label: '768×321',   w: 768,  h: 321 },
-    { label: '832×349',   w: 832,  h: 349 },
-    { label: '896×375',   w: 896,  h: 375 },
-    { label: '960×402',   w: 960,  h: 402 },
-    { label: '1024×428',  w: 1024, h: 428 },
-    { label: '1280×536',  w: 1280, h: 536 },
-    { label: '1536×643',  w: 1536, h: 643 },
-    { label: '2048×857',  w: 2048, h: 857 },
+    { label: '512x512',   w: 512,  h: 512 },
+    { label: '768x512',   w: 768,  h: 512 },
+    { label: '512x768',   w: 512,  h: 768 },
+    { label: '768x768',   w: 768,  h: 768 },
+    { label: '1024x1024', w: 1024, h: 1024 },
+    { label: '1152x896',  w: 1152, h: 896 },
+    { label: '896x1152',  w: 896,  h: 1152 },
+    { label: '1280x720',  w: 1280, h: 720 },
+    { label: '720x1280',  w: 720,  h: 1280 },
+    { label: '1024x768',  w: 1024, h: 768 },
+    { label: '768x1024',  w: 768,  h: 1024 },
+    { label: '1280x768',  w: 1280, h: 768 },
+    { label: '768x1280',  w: 768,  h: 1280 },
+    { label: '1536x1024', w: 1536, h: 1024 },
+    { label: '1024x1536', w: 1024, h: 1536 },
+    { label: '1920x1088', w: 1920, h: 1088 },
+    { label: '1088x1920', w: 1088, h: 1920 },
+    { label: '2048x2048', w: 2048, h: 2048 },
+    { label: '2048x1024', w: 2048, h: 1024 },
+    { label: '1024x2048', w: 1024, h: 2048 },
+    { label: '1828x1332', w: 1828, h: 1332 },
+    { label: '1828x1556', w: 1828, h: 1556 },
+    { label: '1920x803',  w: 1920, h: 803 },
+    { label: '1998x1080', w: 1998, h: 1080 },
+    { label: '2048x858',  w: 2048, h: 858 },
+    { label: '2048x1080', w: 2048, h: 1080 },
+    { label: '2048x1152', w: 2048, h: 1152 },
+    { label: '2048x1556', w: 2048, h: 1556 },
+    { label: '768x321',   w: 768,  h: 321 },
+    { label: '832x349',   w: 832,  h: 349 },
+    { label: '896x375',   w: 896,  h: 375 },
+    { label: '960x402',   w: 960,  h: 402 },
+    { label: '1024x428',  w: 1024, h: 428 },
+    { label: '1280x536',  w: 1280, h: 536 },
+    { label: '1536x643',  w: 1536, h: 643 },
+    { label: '2048x857',  w: 2048, h: 857 },
 ];
 
 function formatDimensionPresetLabel({ label, w, h }) {
     const orientation = w === h ? 'SQ' : (w > h ? 'H' : 'V');
-    return `${label} · ${orientation}`;
+    return `${label} - ${orientation}`;
 }
 
 export default class EasyPanel {
@@ -144,6 +146,7 @@ export default class EasyPanel {
             height: 1024,
             resizeImageOnCanvasSize: true,
             resizeKeepProportions: true,
+            rescaleReferenceImage: true,
             drawOnly: false,
             outpaintDragSelection: true,
             outpaintPadding: null,
@@ -188,12 +191,22 @@ export default class EasyPanel {
                 this.refresh();
             }
         };
+        const onOutpaintReset = () => {
+            this._resetOutpaintFrame({ notifyOverlay: false });
+        };
+        const onCanvasImageChanged = () => {
+            this._resetOutpaintFrame();
+        };
 
         this._unsubs.push(this.eventBus.on('canvas:resize', onResize));
         this._unsubs.push(this.eventBus.on('canvas:image:detected', onResize));
+        this._unsubs.push(this.eventBus.on('canvas:image:detected', onCanvasImageChanged));
+        this._unsubs.push(this.eventBus.on('canvas:image:imported', onCanvasImageChanged));
+        this._unsubs.push(this.eventBus.on('canvas:import:files', onCanvasImageChanged));
         this._unsubs.push(this.eventBus.on('layers:changed', onLayersChanged));
         this._unsubs.push(this.eventBus.on('easy:selection:set', onSelectionSet));
         this._unsubs.push(this.eventBus.on('easy:outpaint:set', onOutpaintSet));
+        this._unsubs.push(this.eventBus.on('easy:outpaint:reset', onOutpaintReset));
         this._unsubs.push(this.eventBus.on('easy:prompt:update', (patch = {}) => {
             if (typeof patch.prompt === 'string') this.state.prompt = patch.prompt;
             if (typeof patch.negativePrompt === 'string') this.state.negativePrompt = patch.negativePrompt;
@@ -221,6 +234,17 @@ export default class EasyPanel {
     refresh() {
         this.render();
         this.attachListeners();
+    }
+
+    _resetOutpaintFrame(options = {}) {
+        const hadFrame = !!this.state.outpaintPadding;
+        this.state.outpaintPadding = null;
+        if (options.notifyOverlay !== false) {
+            this.eventBus.emit('easy:selection:clear', { mode: 'outpaint' });
+        }
+        if (hadFrame && this.state.easyMode === 'outpaint') {
+            this.refresh();
+        }
     }
 
     getSelectedT2IModel() {
@@ -475,6 +499,33 @@ export default class EasyPanel {
         };
     }
 
+    _resolveGenerationSeed() {
+        if (this.state.seedMode === 'locked') {
+            return Math.max(0, Math.floor(Number(this.state.seedValue) || 0));
+        }
+        const seed = this._createRandomSeed();
+        this.state.seedValue = seed;
+        this.eventBus.emit('easy:seed:used', {
+            seed,
+            mode: this.state.easyMode,
+            seedMode: 'randomize',
+        });
+        this.eventBus.emit('status:message', `Seed used: ${seed}`);
+        return seed;
+    }
+
+    _createRandomSeed() {
+        try {
+            const cryptoApi = globalThis.crypto;
+            if (cryptoApi?.getRandomValues) {
+                const values = new Uint32Array(2);
+                cryptoApi.getRandomValues(values);
+                return Number((BigInt(values[0]) << 20n) ^ (BigInt(values[1]) & 0xfffffn));
+            }
+        } catch (_error) {}
+        return Math.floor((Date.now() * 1009 + Math.random() * EASY_RANDOM_SEED_MAX) % EASY_RANDOM_SEED_MAX);
+    }
+
     applyEasyLoras(wr) {
         const loras = this.getEasyLoraSettings();
         wr.setLora1Enabled?.(loras.lora1Enabled);
@@ -555,7 +606,16 @@ export default class EasyPanel {
                 </div>
         ` : '';
         const showFl2EditModel = this.state.easyMode === 'draw' || this.state.easyMode === 'inpaint' || this.state.easyMode === 'outpaint' || this.state.easyMode === 'i2i';
-        const editSections = showFl2EditModel ? '' : '';
+        const editSections = (this.state.easyMode === 'draw' || this.state.easyMode === 'i2i') ? `
+                <div class="easy-panel__field-card easy-panel__field-card--compact">
+                    <label>Reference Prep:</label>
+                    <label class="easy-panel__inline-toggle">
+                        <input id="easy-rescale-reference-toggle" type="checkbox" ${this.state.rescaleReferenceImage ? 'checked' : ''} />
+                        <span>Rescale reference</span>
+                    </label>
+                    <div class="easy-panel__field-note">Uses ImageScaleToTotalPixels before Flux.2 img2img to reduce OOM risk.</div>
+                </div>
+        ` : '';
         const inpaintSections = this.state.easyMode === 'inpaint' ? `
                 <div class="easy-panel__field-card easy-panel__field-card--compact">
                     <label>Inpaint Mask:</label>
@@ -703,6 +763,7 @@ export default class EasyPanel {
         const dimPreset = this.container.querySelector('#easy-dim-preset');
         const resizeImageToggle = this.container.querySelector('#easy-resize-image-toggle');
         const keepProportionsToggle = this.container.querySelector('#easy-keep-proportions-toggle');
+        const rescaleReferenceToggle = this.container.querySelector('#easy-rescale-reference-toggle');
         const modeButtons = this.container.querySelectorAll('.easy-panel__mode-chip');
         const templateDropdown = this.container.querySelector('#easy-t2i-template');
         const modelDropdown = this.container.querySelector('#easy-t2i-model');
@@ -747,8 +808,16 @@ export default class EasyPanel {
             this.state.resizeKeepProportions = !!e.target.checked;
         });
 
+        rescaleReferenceToggle?.addEventListener('change', (e) => {
+            this.state.rescaleReferenceImage = !!e.target.checked;
+        });
+
         modeDropdown?.addEventListener('change', (e) => {
+            const previousMode = this.state.easyMode;
             this.state.easyMode = e.target.value;
+            if (previousMode === 'outpaint' && this.state.easyMode !== 'outpaint') {
+                this._resetOutpaintFrame();
+            }
             this.eventBus.emit('easy:mode:change', { mode: e.target.value });
             this.eventBus.emit('status:message', `Easy mode changed: ${this.getModeLabel(e.target.value)}`);
             this._syncEasySelectionMode();
@@ -759,7 +828,11 @@ export default class EasyPanel {
             btn.addEventListener('click', () => {
                 const mode = btn.dataset.mode;
                 if (!mode || mode === this.state.easyMode) return;
+                const previousMode = this.state.easyMode;
                 this.state.easyMode = mode;
+                if (previousMode === 'outpaint' && mode !== 'outpaint') {
+                    this._resetOutpaintFrame();
+                }
                 this.eventBus.emit('easy:mode:change', { mode });
                 this.eventBus.emit('status:message', `Easy mode changed: ${this.getModeLabel(mode)}`);
                 this._syncEasySelectionMode();
@@ -978,9 +1051,7 @@ export default class EasyPanel {
         } else if (this.state.easyMode === 'upscale') {
             this.applyUpscaleTemplate(wr);
         }
-        const generationSeed = this.state.seedMode === 'locked'
-            ? Math.max(0, Math.floor(Number(this.state.seedValue) || 0))
-            : -1;
+        const generationSeed = this._resolveGenerationSeed();
         wr.setSeed?.(generationSeed);
 
         this.eventBus.emit('workflow:params:changed');
@@ -1023,6 +1094,7 @@ export default class EasyPanel {
             seed: generationSeed,
             width: this.state.width,
             height: this.state.height,
+            rescaleReferenceImage: this.state.rescaleReferenceImage !== false,
             ...this.getEasyLoraSettings(),
         };
 
@@ -1198,3 +1270,4 @@ export default class EasyPanel {
         this.eventBus.emit('easy:selection:enable', { mode: 'outpaint', enabled: false });
     }
 }
+

@@ -1,0 +1,1870 @@
+{
+  "id": "8436ef88-ab6c-4d0c-ba3c-5394eaef39ec",
+  "revision": 0,
+  "last_node_id": 81,
+  "last_link_id": 172,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "KSamplerSelect",
+      "pos": [
+        4017.777680579514,
+        1332.3393190973252
+      ],
+      "size": [
+        270,
+        58
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "SAMPLER",
+          "type": "SAMPLER",
+          "links": [
+            27
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.8.2",
+        "Node name for S&R": "KSamplerSelect",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65,
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.5.2",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "euler"
+      ]
+    },
+    {
+      "id": 2,
+      "type": "RandomNoise",
+      "pos": [
+        4017.777680579514,
+        1072.3392585806323
+      ],
+      "size": [
+        270,
+        82
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "NOISE",
+          "type": "NOISE",
+          "links": [
+            25
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.8.2",
+        "Node name for S&R": "RandomNoise",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65,
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.5.2",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        432262096973515,
+        "fixed"
+      ]
+    },
+    {
+      "id": 3,
+      "type": "522351e8-52ff-472b-bfab-87728468bee9",
+      "pos": [
+        3718.494210421207,
+        1257.825282578975
+      ],
+      "size": [
+        240,
+        86
+      ],
+      "flags": {},
+      "order": 16,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "positive",
+          "name": "conditioning",
+          "type": "CONDITIONING",
+          "link": 1
+        },
+        {
+          "label": "negative",
+          "name": "conditioning_1",
+          "type": "CONDITIONING",
+          "link": 2
+        },
+        {
+          "name": "pixels",
+          "type": "IMAGE",
+          "link": 3
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 4
+        }
+      ],
+      "outputs": [
+        {
+          "label": "positive",
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            11
+          ]
+        },
+        {
+          "label": "negative",
+          "name": "CONDITIONING_1",
+          "type": "CONDITIONING",
+          "links": [
+            12
+          ]
+        }
+      ],
+      "properties": {
+        "proxyWidgets": [],
+        "cnr_id": "comfy-core",
+        "ver": "0.8.2",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65,
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.5.2",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 5,
+      "type": "EmptyFlux2LatentImage",
+      "pos": [
+        4021.120944073672,
+        1589.0178517648233
+      ],
+      "size": [
+        270,
+        106
+      ],
+      "flags": {},
+      "order": 19,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "width",
+          "type": "INT",
+          "widget": {
+            "name": "width"
+          },
+          "link": 5
+        },
+        {
+          "name": "height",
+          "type": "INT",
+          "widget": {
+            "name": "height"
+          },
+          "link": 6
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            29
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.8.2",
+        "Node name for S&R": "EmptyFlux2LatentImage",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65,
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.5.2",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        1024,
+        1024,
+        1
+      ]
+    },
+    {
+      "id": 6,
+      "type": "GetImageSize",
+      "pos": [
+        3720.019393279148,
+        1481.1060049446119
+      ],
+      "size": [
+        236.47609973760996,
+        124
+      ],
+      "flags": {},
+      "order": 17,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "width",
+          "type": "INT",
+          "links": [
+            5,
+            22
+          ]
+        },
+        {
+          "name": "height",
+          "type": "INT",
+          "links": [
+            6,
+            23
+          ]
+        },
+        {
+          "name": "batch_size",
+          "type": "INT",
+          "links": []
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.8.2",
+        "Node name for S&R": "GetImageSize",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65,
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.5.2",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 7,
+      "type": "ImageScaleToTotalPixels",
+      "pos": [
+        3395.5131400929163,
+        1480.629632337916
+      ],
+      "size": [
+        270,
+        106
+      ],
+      "flags": {},
+      "order": 15,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 8
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            3,
+            7
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.8.2",
+        "Node name for S&R": "ImageScaleToTotalPixels",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65,
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.5.2",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "lanczos",
+        1,
+        1
+      ]
+    },
+    {
+      "id": 9,
+      "type": "Note",
+      "pos": [
+        116.01972090012487,
+        1953.8179426660076
+      ],
+      "size": [
+        1191.1029833984376,
+        137.4545263671871
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "Luxury Studio — Elegant, Sensual, and Polished | Rich contrast, glossy highlights, ultra-realistic 8k DSLR photo, luxury studio atmosphere.",
+      "properties": {
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.1",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "Move the camera left, capturing a side profile bathed in soft golden light, dark luxury studio background, smooth gradient tones.\nMove the camera right, subject leaning slightly forward, warm studio lighting and glossy highlights accentuating contours.\nMove the camera down, slightly elevated shot emphasizing posture and curves, soft spotlight from above, dark velvety background.\nRotate the camera 45 degrees to the left, three-quarter glamour shot with high-end portrait lighting, deep contrast, and soft focus edges.\nRotate the camera 45 degrees to the right, showing the subject glancing over their shoulder, silky lighting and elegant shadows, dark neutral background.\nMove the camera forward, close-up of the subject’s face with soft, warm light and cinematic shadows, luxury beauty tone.\nTurn the camera to an upward angle, worm’s-eye shot under soft overhead lighting, graceful confident posture, dark textured backdrop.\nTurn the camera to a wide-angle lens, medium shot revealing elegant pose, fashion editorial tone, controlled lighting setup."
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 10,
+      "type": "CLIPTextEncode",
+      "pos": [
+        3180.666204236769,
+        1402.8004322524116
+      ],
+      "size": [
+        285.41953125,
+        88
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 13,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 9
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            2
+          ]
+        }
+      ],
+      "title": "CLIP Text Encode ( Negative Prompt)",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.9.1",
+        "Node name for S&R": "CLIPTextEncode",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65,
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.1",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        ""
+      ],
+      "color": "#323",
+      "bgcolor": "#535"
+    },
+    {
+      "id": 11,
+      "type": "CFGGuider",
+      "pos": [
+        4017.777680579514,
+        1192.3392779640117
+      ],
+      "size": [
+        270,
+        98
+      ],
+      "flags": {},
+      "order": 18,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 31
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 11
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 12
+        }
+      ],
+      "outputs": [
+        {
+          "name": "GUIDER",
+          "type": "GUIDER",
+          "links": [
+            26
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.8.2",
+        "Node name for S&R": "CFGGuider",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65,
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.5.2",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        1
+      ]
+    },
+    {
+      "id": 20,
+      "type": "Note",
+      "pos": [
+        110.1747892594999,
+        1168.558068398433
+      ],
+      "size": [
+        1213.6241455078125,
+        298.70086669921875
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "Photo-From-Different-Angle",
+      "properties": {
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.1",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "Photorealistic profile portrait of the subject’s face from the left side, evenly lit with soft studio lighting, shallow depth of field, against a plain matte white wall background. Captured with a 50mm DSLR lens.\nHyperrealistic right-profile view of the subject, soft key light illuminating facial contours, smooth skin texture, crisp focus, against a seamless white background.\nDSLR three-quarter portrait, the subject looking naturally toward the camera, balanced lighting with soft shadows, clean white wall backdrop.\nUltra-realistic three-quarter view, subject gazing slightly away from the camera, cinematic tone mapping, natural daylight lighting, against a pure white seamless background.\nLow-angle portrait shot, camera positioned below eye level, capturing the subject’s neutral expression, realistic perspective distortion, against a clean white wall.\nHigh-angle portrait, camera looking down at the subject’s face, soft top lighting creating gentle shadows, white background softly diffused.\nPhotorealistic headshot, head slightly tilted to one side, subtle rim lighting separating the subject from a white background, DSLR sharpness, natural skin texture.\nHyperrealistic over-the-shoulder portrait, subject glancing back toward the camera, cinematic lighting, plain white background with subtle depth blur.\nRembrandt lighting portrait, soft contrast between light and shadow across the subject’s face, three-quarter angle composition, seamless white backdrop.\nExtreme close-up portrait, angled slightly, detailed focus on eyes and skin texture, bokeh background, realistic lighting, against a white wall.\nPhotorealistic Dutch-angle headshot, camera slightly tilted, balanced tones and crisp focus, subtle soft shadows on a matte white wall.\nDSLR portrait, subject looking up and away from the camera, soft fill light, clean high-resolution tone, seamless white wall backdrop.\nUltra-realistic portrait, subject looking down and to the side, dramatic side lighting, against a white wall with slight natural vignetting.\nOver-the-shoulder rear portrait, hyperrealistic lighting, subject turning their head toward the camera, shallow depth of field, seamless white background.\n45-degree angle portrait, showing the subject’s face and shoulders, soft cinematic contrast, plain white wall background.\nMacro-style three-quarter portrait, sharp focus on the subject’s eyes with shallow depth of field, realistic lighting, plain white background.\nWorm’s-eye portrait, camera angled upward from below the chin, accurate perspective, studio-style soft light, plain white wall.\nBird’s-eye perspective portrait, camera above the subject, capturing them looking upward toward the lens, even soft light, white background.\nPhotorealistic upward-facing portrait, subject’s head tilted back, eyes slightly upward, soft light reflecting from white surroundings, seamless background.\nLow-chin headshot, subject looking up under their brows, cinematic lighting, plain white wall backdrop, detailed skin realism.\n\n"
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 26,
+      "type": "Flux2Scheduler",
+      "pos": [
+        4017.777680579514,
+        1432.3392359189716
+      ],
+      "size": [
+        270,
+        106
+      ],
+      "flags": {},
+      "order": 20,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "width",
+          "type": "INT",
+          "widget": {
+            "name": "width"
+          },
+          "link": 22
+        },
+        {
+          "name": "height",
+          "type": "INT",
+          "widget": {
+            "name": "height"
+          },
+          "link": 23
+        }
+      ],
+      "outputs": [
+        {
+          "name": "SIGMAS",
+          "type": "SIGMAS",
+          "links": [
+            28
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.8.2",
+        "Node name for S&R": "Flux2Scheduler",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65,
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.5.2",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        8,
+        1024,
+        1024
+      ]
+    },
+    {
+      "id": 27,
+      "type": "Note",
+      "pos": [
+        113.13983808762305,
+        2153.6122212304585
+      ],
+      "size": [
+        1185.7253369140626,
+        126.69908569335985
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "Neon Cinematic Lighting — Futuristic and Stylish | Cinematic neon lighting, deep shadows, reflective surfaces, moody futuristic tone, 8k detail.",
+      "properties": {
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.1",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "Move the camera left, capturing the subject’s face under split red and cyan neon lights, reflective glow, and high-contrast cinematic tone.\nMove the camera right, highlighting contours with magenta backlight and blue side light, futuristic neon atmosphere.\nRotate the camera 45 degrees to the left, stylized three-quarter portrait, neon reflections visible on the skin and hair, dark background.\nRotate the camera 45 degrees to the right, vibrant purple-blue lighting, metallic reflections, and cinematic color grading.\nTurn the camera to an upward angle, lens flare from neon lights above, dramatic worm’s-eye composition, glowing edges on the face.\nTurn the camera to a top-down view, colorful neon reflections from below, soft mist, dynamic cinematic shadows.\nMove the camera forward, intense close-up of the subject’s face, red and teal lights framing the eyes, high cinematic contrast.\nTurn the camera to a wide-angle lens, revealing part of the glowing environment, holographic-style reflections, dark neon setting."
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 16,
+      "type": "VAEDecode",
+      "pos": [
+        4363.719962922778,
+        1525.672264901574
+      ],
+      "size": [
+        220,
+        46
+      ],
+      "flags": {},
+      "order": 22,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "samples",
+          "type": "LATENT",
+          "link": 18
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 19
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "slot_index": 0,
+          "links": [
+            24
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.8.2",
+        "Node name for S&R": "VAEDecode",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65,
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.5.2",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 25,
+      "type": "Note",
+      "pos": [
+        114.4911955094999,
+        1518.3510371484313
+      ],
+      "size": [
+        1200.51416015625,
+        189.88790893554688
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "Dark-Background",
+      "properties": {
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.1",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "Move the camera left, capturing a moody side profile of the subject under soft rim lighting, dark studio background, sensual expression, cinematic contrast.\nMove the camera right, subject turning slightly toward the camera, soft red and gold backlight highlighting the hair and shoulders, dark gradient backdrop.\nMove the camera forward, tight close-up of the subject’s face with parted lips and intense eye contact, dramatic lighting, shadows accentuating facial contours.\nRotate the camera 45 degrees to the left, showing a three-quarter view of the subject’s face and upper body, moody softbox lighting, glossy skin tone, deep shadows behind.\nRotate the camera 45 degrees to the right, subject glancing over the shoulder toward the camera, illuminated by warm-toned key light, dark blurred background.\nRotate the camera 90 degrees to the left, side profile pose with head slightly tilted back, soft rim light outlining the silhouette, dark cinematic environment.\nRotate the camera 90 degrees to the right, right profile of the subject’s face, half-lit by warm light, half fading into darkness, glossy highlights on skin.\nMove the camera down, capturing a subtle top-down view emphasizing pose and gaze, soft shadows, dark neutral background with low-key lighting.\nTurn the camera to an upward angle, worm’s-eye view with the subject looking down at the lens with a confident, alluring gaze, single key light from above, dark cinematic tones.\nTurn the camera to a wide-angle lens, fashion-style medium shot of the subject leaning slightly forward, dramatic colored lighting (red and blue tones), smoky dark background.\nTurn the camera to a close-up, detailed capture of the eyes and lips, deep shadows on one side, glowing highlight from a soft warm key light, dark backdrop.\nMove the camera forward, subject’s hair gently illuminated by rim light, expression calm yet seductive, low-key lighting, dark gradient background."
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 24,
+      "type": "Note",
+      "pos": [
+        110.8232267594999,
+        1767.1319209374938
+      ],
+      "size": [
+        1198.4638489393187,
+        127.09382776869461
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "Nightclub Aesthetic — Sultry and Vivid | Moody nightclub lighting, smoke haze, neon reflections, shallow depth of field.",
+      "properties": {
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.1",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "Move the camera left, capturing the subject’s silhouette under flashing magenta and cyan lights, soft haze in the background, moody nightclub vibe.\nMove the camera right, subject turning slightly toward the camera, bathed in purple and red lighting, confident pose and glowing highlights.\nRotate the camera 45 degrees to the left, three-quarter portrait under mixed neon lighting, reflections of colored lights on the skin, deep nightclub shadows.\nRotate the camera 45 degrees to the right, cinematic shot with cool blue key light and warm red rim light, faint smoke in the dark background.\nMove the camera forward, tight close-up of the subject’s face illuminated by neon glow, soft reflections in the eyes, moody club lighting.\nTurn the camera to an upward angle, worm’s-eye view looking up at the subject surrounded by swirling lights and smoke, dark nightclub ambiance.\nTurn the camera to a wide-angle lens, capturing upper body and colorful background bokeh from club lights, lively yet cinematic tone.\nTurn the camera to a close-up, focusing on expressive eyes and lips highlighted by red and violet light, shallow depth of field, dark moody club setting."
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 21,
+      "type": "Note",
+      "pos": [
+        116.03656068746109,
+        2362.7398619212618
+      ],
+      "size": [
+        1175.3423974282123,
+        269.0685428183692
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.1",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "DSLR portrait, subject looking up and away from the camera, soft fill light, clean high-resolution tone, seamless white wall backdrop.\nUltra-realistic portrait, subject looking down and to the side, dramatic side lighting, against a white wall with slight natural vignetting.\nOver-the-shoulder rear portrait, hyperrealistic lighting, subject turning their head toward the camera, shallow depth of field, seamless white background.\n45-degree angle portrait, showing the subject’s face and shoulders, soft cinematic contrast, plain white wall background.\nMacro-style three-quarter portrait, sharp focus on the subject’s eyes with shallow depth of field, realistic lighting, plain white background.\nWorm’s-eye portrait, camera angled upward from below the chin, accurate perspective, studio-style soft light, plain white wall.\nBird’s-eye perspective portrait, camera above the subject, capturing them looking upward toward the lens, even soft light, white background.\nPhotorealistic upward-facing portrait, subject’s head tilted back, eyes slightly upward, soft light reflecting from white surroundings, seamles\n\nTurn the camera to a close-up.\nTurn the camera to a low-angle view.\nTurn the camera to a wide-angle lens.\nTurn the camera to an aerial view.\n\nRotate the camera 45 degrees to the left.\nRotate the camera 90 degrees to the left.\nRotate the camera 45 degrees to the right.\nRotate the camera 90 degrees to the right.\n"
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 33,
+      "type": "UnetLoaderGGUF",
+      "pos": [
+        2705.9114445279934,
+        862.8572941005145
+      ],
+      "size": [
+        270,
+        58
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            31
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "ComfyUI-GGUF",
+        "ver": "c2e3b0adc3f805d401d745f69c88cc7e3eb5db75",
+        "Node name for S&R": "UnetLoaderGGUF",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.5.2"
+        }
+      },
+      "widgets_values": [
+        "flux-2-klein-9b-Q8_0.gguf"
+      ]
+    },
+    {
+      "id": 4,
+      "type": "CLIPLoader",
+      "pos": [
+        2648.394756214719,
+        1170.8664678358527
+      ],
+      "size": [
+        364.42708333333337,
+        106
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            9,
+            20
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.8.2",
+        "Node name for S&R": "CLIPLoader",
+        "models": [
+          {
+            "name": "qwen_3_8b_fp8mixed.safetensors",
+            "url": "https://huggingface.co/Comfy-Org/flux2-klein-9B/resolve/main/split_files/text_encoders/qwen_3_8b_fp8mixed.safetensors",
+            "directory": "text_encoders"
+          }
+        ],
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65,
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.5.2",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "qwen_3_8b_fp8mixed.safetensors",
+        "flux2",
+        "default"
+      ]
+    },
+    {
+      "id": 12,
+      "type": "VAELoader",
+      "pos": [
+        2664.219300025705,
+        1357.8103624457863
+      ],
+      "size": [
+        331.09370930989587,
+        68
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            4,
+            19
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.8.2",
+        "Node name for S&R": "VAELoader",
+        "models": [
+          {
+            "name": "flux2-vae.safetensors",
+            "url": "https://huggingface.co/Comfy-Org/flux2-dev/resolve/main/split_files/vae/flux2-vae.safetensors",
+            "directory": "vae"
+          }
+        ],
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65,
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.5.2",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "flux2-vae.safetensors"
+      ]
+    },
+    {
+      "id": 13,
+      "type": "UNETLoader",
+      "pos": [
+        2667.608131105513,
+        954.5952996460314
+      ],
+      "size": [
+        364.42708333333337,
+        82
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 4,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": []
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.8.2",
+        "Node name for S&R": "UNETLoader",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65,
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.5.2",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "flux-2-klein-9b.safetensors",
+        "default"
+      ]
+    },
+    {
+      "id": 30,
+      "type": "SamplerCustomAdvanced",
+      "pos": [
+        4419.598522179661,
+        1204.5964729319503
+      ],
+      "size": [
+        212.3638671875,
+        111.66158063669855
+      ],
+      "flags": {},
+      "order": 21,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "noise",
+          "type": "NOISE",
+          "link": 25
+        },
+        {
+          "name": "guider",
+          "type": "GUIDER",
+          "link": 26
+        },
+        {
+          "name": "sampler",
+          "type": "SAMPLER",
+          "link": 27
+        },
+        {
+          "name": "sigmas",
+          "type": "SIGMAS",
+          "link": 28
+        },
+        {
+          "name": "latent_image",
+          "type": "LATENT",
+          "link": 29
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "LATENT",
+          "links": [
+            18
+          ]
+        },
+        {
+          "name": "denoised_output",
+          "type": "LATENT",
+          "links": []
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.8.2",
+        "Node name for S&R": "SamplerCustomAdvanced",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65,
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.5.2",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 29,
+      "type": "SaveImage",
+      "pos": [
+        4781.745900834303,
+        1582.9821781080689
+      ],
+      "size": [
+        962.2474255269835,
+        982.0115743282843
+      ],
+      "flags": {
+        "collapsed": false
+      },
+      "order": 23,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 24
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.9.2",
+        "Node name for S&R": "SaveImage",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.1"
+        }
+      },
+      "widgets_values": [
+        "flux2_MULTIANGLES"
+      ],
+      "color": "#223",
+      "bgcolor": "#335"
+    },
+    {
+      "id": 19,
+      "type": "LoadImage",
+      "pos": [
+        2319.5360318497524,
+        1523.1149330094343
+      ],
+      "size": [
+        480.05467007949755,
+        579.1027175254062
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            8
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": []
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.8.2",
+        "Node name for S&R": "LoadImage",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65,
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.5.2",
+          "input_ue_unconnectable": {}
+        },
+        "image": "clipspace/clipspace-painted-masked-1768901462513.png [input]"
+      },
+      "widgets_values": [
+        "specchio (1).png",
+        "image"
+      ],
+      "color": "#223",
+      "bgcolor": "#335"
+    },
+    {
+      "id": 18,
+      "type": "CLIPTextEncode",
+      "pos": [
+        3177.272818025715,
+        1258.1918224340461
+      ],
+      "size": [
+        372.0858363750315,
+        109.53913343853583
+      ],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 20
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "slot_index": 0,
+          "links": [
+            1
+          ]
+        }
+      ],
+      "title": "CLIP Text Encode (Positive Prompt)",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.8.2",
+        "Node name for S&R": "CLIPTextEncode",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65,
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.5.2",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "change the style to photorealistic\n"
+      ],
+      "color": "#232",
+      "bgcolor": "#353"
+    }
+  ],
+  "links": [
+    [
+      1,
+      18,
+      0,
+      3,
+      0,
+      "CONDITIONING"
+    ],
+    [
+      2,
+      10,
+      0,
+      3,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      3,
+      7,
+      0,
+      3,
+      2,
+      "IMAGE"
+    ],
+    [
+      4,
+      12,
+      0,
+      3,
+      3,
+      "VAE"
+    ],
+    [
+      5,
+      6,
+      0,
+      5,
+      0,
+      "INT"
+    ],
+    [
+      6,
+      6,
+      1,
+      5,
+      1,
+      "INT"
+    ],
+    [
+      7,
+      7,
+      0,
+      6,
+      0,
+      "IMAGE"
+    ],
+    [
+      8,
+      19,
+      0,
+      7,
+      0,
+      "IMAGE"
+    ],
+    [
+      9,
+      4,
+      0,
+      10,
+      0,
+      "CLIP"
+    ],
+    [
+      11,
+      3,
+      0,
+      11,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      12,
+      3,
+      1,
+      11,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      18,
+      30,
+      0,
+      16,
+      0,
+      "LATENT"
+    ],
+    [
+      19,
+      12,
+      0,
+      16,
+      1,
+      "VAE"
+    ],
+    [
+      20,
+      4,
+      0,
+      18,
+      0,
+      "CLIP"
+    ],
+    [
+      22,
+      6,
+      0,
+      26,
+      0,
+      "INT"
+    ],
+    [
+      23,
+      6,
+      1,
+      26,
+      1,
+      "INT"
+    ],
+    [
+      24,
+      16,
+      0,
+      29,
+      0,
+      "IMAGE"
+    ],
+    [
+      25,
+      2,
+      0,
+      30,
+      0,
+      "NOISE"
+    ],
+    [
+      26,
+      11,
+      0,
+      30,
+      1,
+      "GUIDER"
+    ],
+    [
+      27,
+      1,
+      0,
+      30,
+      2,
+      "SAMPLER"
+    ],
+    [
+      28,
+      26,
+      0,
+      30,
+      3,
+      "SIGMAS"
+    ],
+    [
+      29,
+      5,
+      0,
+      30,
+      4,
+      "LATENT"
+    ],
+    [
+      31,
+      33,
+      0,
+      11,
+      0,
+      "MODEL"
+    ]
+  ],
+  "groups": [],
+  "definitions": {
+    "subgraphs": [
+      {
+        "id": "522351e8-52ff-472b-bfab-87728468bee9",
+        "version": 1,
+        "state": {
+          "lastGroupId": 4,
+          "lastNodeId": 81,
+          "lastLinkId": 172,
+          "lastRerouteId": 0
+        },
+        "revision": 0,
+        "config": {},
+        "name": "Reference Conditioning",
+        "inputNode": {
+          "id": -10,
+          "bounding": [
+            -270,
+            990,
+            120,
+            120
+          ]
+        },
+        "outputNode": {
+          "id": -20,
+          "bounding": [
+            580,
+            970,
+            120,
+            80
+          ]
+        },
+        "inputs": [
+          {
+            "id": "5c9a0f5e-8cee-4947-90bc-330de782043a",
+            "name": "conditioning",
+            "type": "CONDITIONING",
+            "linkIds": [
+              165
+            ],
+            "label": "positive",
+            "pos": [
+              -170,
+              1010
+            ]
+          },
+          {
+            "id": "61826d46-4c21-4ad6-801c-3e3fa94115e2",
+            "name": "conditioning_1",
+            "type": "CONDITIONING",
+            "linkIds": [
+              166
+            ],
+            "label": "negative",
+            "pos": [
+              -170,
+              1030
+            ]
+          },
+          {
+            "id": "345bf085-5939-47ff-9767-8f8f239a719c",
+            "name": "pixels",
+            "type": "IMAGE",
+            "linkIds": [
+              167
+            ],
+            "pos": [
+              -170,
+              1050
+            ]
+          },
+          {
+            "id": "f4594e34-e2f5-4f1e-b1fa-a1dc2aeb0a90",
+            "name": "vae",
+            "type": "VAE",
+            "linkIds": [
+              168
+            ],
+            "pos": [
+              -170,
+              1070
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "id": "b3357c0e-6428-4055-9cd3-3595f0896fa8",
+            "name": "CONDITIONING",
+            "type": "CONDITIONING",
+            "linkIds": [
+              169
+            ],
+            "label": "positive",
+            "pos": [
+              600,
+              990
+            ]
+          },
+          {
+            "id": "01519713-2ed1-4694-a387-79f44e088e89",
+            "name": "CONDITIONING_1",
+            "type": "CONDITIONING",
+            "linkIds": [
+              170
+            ],
+            "label": "negative",
+            "pos": [
+              600,
+              1010
+            ]
+          }
+        ],
+        "widgets": [],
+        "nodes": [
+          {
+            "id": 78,
+            "type": "VAEEncode",
+            "pos": [
+              -91.0190332614131,
+              1015.4826413302102
+            ],
+            "size": [
+              190,
+              46
+            ],
+            "flags": {
+              "collapsed": false
+            },
+            "order": 2,
+            "mode": 0,
+            "inputs": [
+              {
+                "localized_name": "pixels",
+                "name": "pixels",
+                "type": "IMAGE",
+                "link": 167
+              },
+              {
+                "localized_name": "vae",
+                "name": "vae",
+                "type": "VAE",
+                "link": 168
+              }
+            ],
+            "outputs": [
+              {
+                "localized_name": "LATENT",
+                "name": "LATENT",
+                "type": "LATENT",
+                "links": [
+                  163,
+                  164
+                ]
+              }
+            ],
+            "properties": {
+              "cnr_id": "comfy-core",
+              "ver": "0.8.2",
+              "Node name for S&R": "VAEEncode",
+              "enableTabs": false,
+              "tabWidth": 65,
+              "tabXOffset": 10,
+              "hasSecondTab": false,
+              "secondTabText": "Send Back",
+              "secondTabOffset": 80,
+              "secondTabWidth": 65,
+              "ue_properties": {
+                "widget_ue_connectable": {},
+                "version": "7.5.2",
+                "input_ue_unconnectable": {}
+              }
+            },
+            "widgets_values": []
+          },
+          {
+            "id": 76,
+            "type": "ReferenceLatent",
+            "pos": [
+              164.90462377054322,
+              1124.3922970225037
+            ],
+            "size": [
+              204.134765625,
+              46
+            ],
+            "flags": {
+              "collapsed": false
+            },
+            "order": 0,
+            "mode": 0,
+            "inputs": [
+              {
+                "localized_name": "conditioning",
+                "name": "conditioning",
+                "type": "CONDITIONING",
+                "link": 166
+              },
+              {
+                "localized_name": "latent",
+                "name": "latent",
+                "shape": 7,
+                "type": "LATENT",
+                "link": 163
+              }
+            ],
+            "outputs": [
+              {
+                "localized_name": "CONDITIONING",
+                "name": "CONDITIONING",
+                "type": "CONDITIONING",
+                "links": [
+                  170
+                ]
+              }
+            ],
+            "properties": {
+              "cnr_id": "comfy-core",
+              "ver": "0.8.2",
+              "Node name for S&R": "ReferenceLatent",
+              "enableTabs": false,
+              "tabWidth": 65,
+              "tabXOffset": 10,
+              "hasSecondTab": false,
+              "secondTabText": "Send Back",
+              "secondTabOffset": 80,
+              "secondTabWidth": 65,
+              "ue_properties": {
+                "widget_ue_connectable": {},
+                "version": "7.5.2",
+                "input_ue_unconnectable": {}
+              }
+            },
+            "widgets_values": []
+          },
+          {
+            "id": 77,
+            "type": "ReferenceLatent",
+            "pos": [
+              177.13344275228297,
+              949.17164922337
+            ],
+            "size": [
+              210,
+              46
+            ],
+            "flags": {
+              "collapsed": false
+            },
+            "order": 1,
+            "mode": 0,
+            "inputs": [
+              {
+                "localized_name": "conditioning",
+                "name": "conditioning",
+                "type": "CONDITIONING",
+                "link": 165
+              },
+              {
+                "localized_name": "latent",
+                "name": "latent",
+                "shape": 7,
+                "type": "LATENT",
+                "link": 164
+              }
+            ],
+            "outputs": [
+              {
+                "localized_name": "CONDITIONING",
+                "name": "CONDITIONING",
+                "type": "CONDITIONING",
+                "links": [
+                  169
+                ]
+              }
+            ],
+            "properties": {
+              "cnr_id": "comfy-core",
+              "ver": "0.8.2",
+              "Node name for S&R": "ReferenceLatent",
+              "enableTabs": false,
+              "tabWidth": 65,
+              "tabXOffset": 10,
+              "hasSecondTab": false,
+              "secondTabText": "Send Back",
+              "secondTabOffset": 80,
+              "secondTabWidth": 65,
+              "ue_properties": {
+                "widget_ue_connectable": {},
+                "version": "7.5.2",
+                "input_ue_unconnectable": {}
+              }
+            },
+            "widgets_values": []
+          }
+        ],
+        "groups": [],
+        "links": [
+          {
+            "id": 163,
+            "origin_id": 78,
+            "origin_slot": 0,
+            "target_id": 76,
+            "target_slot": 1,
+            "type": "LATENT"
+          },
+          {
+            "id": 164,
+            "origin_id": 78,
+            "origin_slot": 0,
+            "target_id": 77,
+            "target_slot": 1,
+            "type": "LATENT"
+          },
+          {
+            "id": 165,
+            "origin_id": -10,
+            "origin_slot": 0,
+            "target_id": 77,
+            "target_slot": 0,
+            "type": "CONDITIONING"
+          },
+          {
+            "id": 166,
+            "origin_id": -10,
+            "origin_slot": 1,
+            "target_id": 76,
+            "target_slot": 0,
+            "type": "CONDITIONING"
+          },
+          {
+            "id": 167,
+            "origin_id": -10,
+            "origin_slot": 2,
+            "target_id": 78,
+            "target_slot": 0,
+            "type": "IMAGE"
+          },
+          {
+            "id": 168,
+            "origin_id": -10,
+            "origin_slot": 3,
+            "target_id": 78,
+            "target_slot": 1,
+            "type": "VAE"
+          },
+          {
+            "id": 169,
+            "origin_id": 77,
+            "origin_slot": 0,
+            "target_id": -20,
+            "target_slot": 0,
+            "type": "CONDITIONING"
+          },
+          {
+            "id": 170,
+            "origin_id": 76,
+            "origin_slot": 0,
+            "target_id": -20,
+            "target_slot": 1,
+            "type": "CONDITIONING"
+          }
+        ],
+        "extra": {
+          "workflowRendererVersion": "LG",
+          "ue_links": [],
+          "links_added_by_ue": []
+        }
+      }
+    ]
+  },
+  "config": {},
+  "extra": {
+    "workflowRendererVersion": "LG",
+    "ds": {
+      "scale": 0.4736244074476821,
+      "offset": [
+        -1926.6181383221226,
+        39.576599605451335
+      ]
+    },
+    "ue_links": [],
+    "frontendVersion": "1.45.15",
+    "VHS_latentpreview": false,
+    "VHS_latentpreviewrate": 0,
+    "VHS_MetadataImage": true,
+    "VHS_KeepIntermediate": true,
+    "iamccs_annotations_multi": {
+      "version": 2,
+      "graphs": {
+        "d0576410-1339-4b36-9cd9-376233f89c40": {
+          "version": 2,
+          "enabled": false,
+          "color": "#ff4444",
+          "width": 7,
+          "opacity": 1,
+          "eraser": false,
+          "constantScreen": false,
+          "dashed": false,
+          "hidden": false,
+          "penOnly": false,
+          "hiDPIx2": false,
+          "pinMode": false,
+          "tool": "draw",
+          "selectMode": "rect",
+          "transformMode": "fixed",
+          "widthDraw": 7,
+          "widthErase": 48,
+          "opacityDraw": 1,
+          "opacityErase": 1,
+          "textFontFamily": "Arial",
+          "textFontSize": 28,
+          "textColor": "#111111",
+          "textFontWeight": "normal",
+          "textFontStyle": "normal",
+          "textUnderline": false,
+          "paths": [],
+          "layers": [
+            {
+              "name": "Layer 1",
+              "visible": true,
+              "locked": false,
+              "paths": [],
+              "style": {
+                "color": "#ff4444",
+                "dashed": false,
+                "widthDraw": 7,
+                "widthErase": 48,
+                "opacityDraw": 1,
+                "opacityErase": 1
+              }
+            }
+          ],
+          "currentLayerIdx": 0,
+          "stickers": [],
+          "stickerStyle": {
+            "frameColor": "#ffffff",
+            "paddingPx": 10,
+            "borderWidthPx": 2,
+            "shadow": true,
+            "shadowStrength": 12
+          }
+        }
+      }
+    },
+    "links_added_by_ue": [],
+    "iamccs_annotations": {
+      "version": 2,
+      "enabled": false,
+      "color": "#ff4444",
+      "width": 7,
+      "opacity": 1,
+      "eraser": false,
+      "constantScreen": false,
+      "dashed": false,
+      "hidden": false,
+      "penOnly": false,
+      "hiDPIx2": false,
+      "pinMode": false,
+      "tool": "draw",
+      "selectMode": "rect",
+      "transformMode": "fixed",
+      "widthDraw": 7,
+      "widthErase": 48,
+      "opacityDraw": 1,
+      "opacityErase": 1,
+      "textFontFamily": "Arial",
+      "textFontSize": 28,
+      "textColor": "#111111",
+      "textFontWeight": "normal",
+      "textFontStyle": "normal",
+      "textUnderline": false,
+      "paths": [],
+      "layers": [
+        {
+          "name": "Layer 1",
+          "visible": true,
+          "locked": false,
+          "paths": [],
+          "style": {
+            "color": "#ff4444",
+            "dashed": false,
+            "widthDraw": 7,
+            "widthErase": 48,
+            "opacityDraw": 1,
+            "opacityErase": 1
+          }
+        }
+      ],
+      "currentLayerIdx": 0,
+      "stickers": [],
+      "stickerStyle": {
+        "frameColor": "#ffffff",
+        "paddingPx": 10,
+        "borderWidthPx": 2,
+        "shadow": true,
+        "shadowStrength": 12
+      }
+    }
+  },
+  "version": 0.4
+}

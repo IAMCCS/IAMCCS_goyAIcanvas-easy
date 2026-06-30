@@ -1,10 +1,10 @@
 import UIHelpers from "../utils/UIHelpers.js";
 import { debugTrace } from "../utils/DebugTrace.js";
 import Constants from "../utils/Constants.js";
-import EasyCanvasKernel from "./EasyCanvasKernel.js?v=20260630_EASY_CLEAN_CORE26";
-import TransformMath from "../engine/EasyTransformMath.js?v=20260630_EASY_CLEAN_CORE26";
-import EasyCanvasDocument from "./EasyCanvasDocument.js?v=20260630_EASY_CLEAN_CORE26";
-import EasyCropController from "./EasyCropController.js?v=20260630_EASY_CLEAN_CORE26";
+import EasyCanvasKernel from "./EasyCanvasKernel.js?v=20260630_EASY_OUTPAINT_CONDITIONING01";
+import TransformMath from "../engine/EasyTransformMath.js?v=20260630_EASY_OUTPAINT_CONDITIONING01";
+import EasyCanvasDocument from "./EasyCanvasDocument.js?v=20260630_EASY_OUTPAINT_CONDITIONING01";
+import EasyCropController from "./EasyCropController.js?v=20260630_EASY_OUTPAINT_CONDITIONING01";
 
 export default class CanvasView {
     constructor(hostElement, eventBus, layerManager, maskManager) {
@@ -162,7 +162,7 @@ export default class CanvasView {
     this._ignoreImportedResizeUntil = 0;
 
     // Imaging effects state
-    this._effectsOriginal = {}; // legacy single-effect backup
+    this._effectsOriginal = {};
     this._effectsState = {}; // layerId -> { original: dataURL, map: { [effect]: { enabled, amount } } }
 
         this._bindDropZone();
@@ -425,7 +425,7 @@ export default class CanvasView {
                 bottom: Number.isFinite(bottom) ? Math.max(0, Math.trunc(bottom)) : (this._fl2oPadding.bottom || 0),
             };
         });
-    // Imaging events handled non-destructively by renderer; disable legacy bitmap-mutating handlers
+        // Imaging events are handled non-destructively by the canvas kernel.
     // this.eventBus.on("image:effect:apply", (payload) => this._onEffectApply(payload));
     // this.eventBus.on("image:effect:reset", () => this._resetEffects());
     // this.eventBus.on("image:curves:reset", () => this._resetCurves());
@@ -550,7 +550,7 @@ export default class CanvasView {
                 this._renderCompareOverlay();
             }
         });
-    // Histogram is computed from renderer composite; disable legacy per-layer histogram
+    // Histogram is computed from the visible composite.
     // this.eventBus.on("image:histogram:request", () => this._onHistogramRequest());
         // Text editing overlay disabled (stability priority)
         // this.eventBus.on("text:edit:start", (payload) => this._openTextEditor(payload));
@@ -2376,5 +2376,7 @@ export default class CanvasView {
         Object.assign(this._liqRing.style, { width: `${r*2}px`, height: `${r*2}px` });
     }
 }
+
+
 
 

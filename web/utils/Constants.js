@@ -4,7 +4,6 @@ const Constants = {
     DEFAULT_LAYER_NAME: "Image 1",
     BACKGROUND_LAYER_NAME: "Background",
     DEFAULT_BLEND_MODE: "normal",
-    API_BASE: "/iamccs/goyacanvas",
     EASY_API_BASE: "/iamccs/goyai_easy",
     TOOL_IDS: [
         "pencil",

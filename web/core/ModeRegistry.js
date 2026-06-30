@@ -4,7 +4,7 @@ export const MODE_DEFINITIONS = Object.freeze([
         label: "EASY",
         tier: "public",
         status: "active",
-        loader: () => import("../modes/easy/EasyMode.js?v=20260630_EASY_CLEAN_CORE26"),
+        loader: () => import("../modes/easy/EasyMode.js?v=20260630_EASY_OUTPAINT_CONDITIONING01"),
     },
 ]);
 
@@ -40,3 +40,5 @@ export function normalizeMode(mode, fallback = "easy") {
 export function shouldReuseMode(mode) {
     return !NON_PERSISTENT_MODES.has(mode);
 }
+
+
