@@ -150,9 +150,9 @@ export default class EasyPanel {
             drawOnly: false,
             outpaintDragSelection: true,
             outpaintPadding: null,
-            outpaintCandidates: [],
-            outpaintCandidateIndex: -1,
             outpaintBaseSourceDataUrl: '',
+            inpaintBaseSourceDataUrl: '',
+            inpaintBaseMaskDataUrl: '',
         };
 
         this._unsubs = [];
@@ -196,19 +196,23 @@ export default class EasyPanel {
         };
         const onOutpaintReset = (payload = {}) => {
             this._resetOutpaintFrame({ notifyOverlay: false });
-            if (payload.reason === 'accepted' || payload.reason === 'mode-change' || payload.reason === 'clear') {
+            if (payload.reason === 'final-import' || payload.reason === 'accepted' || payload.reason === 'mode-change' || payload.reason === 'clear') {
                 this.state.outpaintBaseSourceDataUrl = '';
-                this.state.outpaintCandidates = [];
-                this.state.outpaintCandidateIndex = -1;
                 this.refresh();
             }
         };
+        const onInpaintReset = (payload = {}) => {
+            if (payload.reason === 'final-import' || payload.reason === 'accepted' || payload.reason === 'mode-change' || payload.reason === 'clear') {
+                this.state.inpaintBaseSourceDataUrl = '';
+                this.state.inpaintBaseMaskDataUrl = '';
+                if (this.state.easyMode === 'inpaint') this.refresh();
+            }
+        };
         const onCanvasImageChanged = (payload = {}) => {
-            if (payload?.source === 'easy-outpaint-candidate') return;
             this._resetOutpaintFrame();
             this.state.outpaintBaseSourceDataUrl = '';
-            this.state.outpaintCandidates = [];
-            this.state.outpaintCandidateIndex = -1;
+            this.state.inpaintBaseSourceDataUrl = '';
+            this.state.inpaintBaseMaskDataUrl = '';
         };
 
         this._unsubs.push(this.eventBus.on('canvas:resize', onResize));
@@ -220,12 +224,7 @@ export default class EasyPanel {
         this._unsubs.push(this.eventBus.on('easy:selection:set', onSelectionSet));
         this._unsubs.push(this.eventBus.on('easy:outpaint:set', onOutpaintSet));
         this._unsubs.push(this.eventBus.on('easy:outpaint:reset', onOutpaintReset));
-        this._unsubs.push(this.eventBus.on('easy:outpaint:candidates', (payload = {}) => {
-            this.state.outpaintCandidates = Array.isArray(payload.candidates) ? payload.candidates : [];
-            this.state.outpaintCandidateIndex = Number.isFinite(Number(payload.index)) ? Number(payload.index) : -1;
-            if (payload.accepted) this.state.outpaintBaseSourceDataUrl = '';
-            if (this.state.easyMode === 'outpaint') this.refresh();
-        }));
+        this._unsubs.push(this.eventBus.on('easy:inpaint:reset', onInpaintReset));
         this._unsubs.push(this.eventBus.on('easy:prompt:update', (patch = {}) => {
             if (typeof patch.prompt === 'string') this.state.prompt = patch.prompt;
             if (typeof patch.negativePrompt === 'string') this.state.negativePrompt = patch.negativePrompt;
@@ -261,10 +260,8 @@ export default class EasyPanel {
         if (options.notifyOverlay !== false) {
             this.eventBus.emit('easy:selection:clear', { mode: 'outpaint' });
         }
-        if (options.clearCandidates) {
+        if (options.clearFrame) {
             this.state.outpaintBaseSourceDataUrl = '';
-            this.state.outpaintCandidates = [];
-            this.state.outpaintCandidateIndex = -1;
             this.eventBus.emit('easy:outpaint:reset', { reason: options.reason || 'clear' });
         }
         if (hadFrame && this.state.easyMode === 'outpaint') {
@@ -644,7 +641,7 @@ export default class EasyPanel {
         const inpaintSections = this.state.easyMode === 'inpaint' ? `
                 <div class="easy-panel__field-card easy-panel__field-card--compact">
                     <label>Inpaint Mask:</label>
-                    <div class="easy-panel__field-note">Paint the mask with the Brush panel. Use the brush-size slider to control mask width.</div>
+                    <div class="easy-panel__field-note">Paint the mask with the Brush panel. The generated result is imported directly into the canvas.</div>
                 </div>
         ` : '';
         const outpaintPadding = this.state.outpaintPadding || {};
@@ -652,11 +649,6 @@ export default class EasyPanel {
         const outpaintSelectionLabel = outpaintTotal > 0
             ? `L${Math.round(outpaintPadding.left || 0)} T${Math.round(outpaintPadding.top || 0)} R${Math.round(outpaintPadding.right || 0)} B${Math.round(outpaintPadding.bottom || 0)}`
             : 'No frame';
-        const outpaintCandidates = Array.isArray(this.state.outpaintCandidates) ? this.state.outpaintCandidates : [];
-        const outpaintCandidateIndex = Number.isFinite(Number(this.state.outpaintCandidateIndex)) ? Number(this.state.outpaintCandidateIndex) : -1;
-        const outpaintCandidateCount = outpaintCandidates.length;
-        const outpaintCandidateNumber = outpaintCandidateCount && outpaintCandidateIndex >= 0 ? outpaintCandidateIndex + 1 : 0;
-        const outpaintCandidateLabel = outpaintCandidateCount ? `${outpaintCandidateNumber} / ${outpaintCandidateCount}` : '0 / 0';
         const outpaintSections = this.state.easyMode === 'outpaint' ? `
                 <div class="easy-panel__field-card easy-panel__field-card--compact">
                     <label>Outpaint Frame:</label>
@@ -677,22 +669,6 @@ export default class EasyPanel {
                         >
                             Clear
                         </button>
-                    </div>
-                    <div class="easy-panel__candidate-row">
-                        <button
-                            id="easy-outpaint-candidate-accept"
-                            type="button"
-                            class="easy-panel__button easy-panel__button--accept"
-                            ${outpaintCandidateCount ? '' : 'disabled'}
-                            title="Accept the visible outpaint candidate"
-                        >
-                            Accept
-                        </button>
-                        <div class="easy-panel__candidate-stepper" title="Outpaint candidate">
-                            <button id="easy-outpaint-candidate-prev" type="button" class="easy-panel__mini-button" ${outpaintCandidateCount > 1 ? '' : 'disabled'}>‹</button>
-                            <span>${outpaintCandidateLabel}</span>
-                            <button id="easy-outpaint-candidate-next" type="button" class="easy-panel__mini-button" ${outpaintCandidateCount > 1 ? '' : 'disabled'}>›</button>
-                        </div>
                     </div>
                     <div class="easy-panel__field-note">${outpaintSelectionLabel}</div>
                 </div>
@@ -823,9 +799,6 @@ export default class EasyPanel {
         const lora2Strength = this.container.querySelector('#easy-lora2-strength');
         const outpaintSelectionToggle = this.container.querySelector('#easy-outpaint-selection-toggle');
         const outpaintSelectionClear = this.container.querySelector('#easy-outpaint-selection-clear');
-        const outpaintCandidateAccept = this.container.querySelector('#easy-outpaint-candidate-accept');
-        const outpaintCandidatePrev = this.container.querySelector('#easy-outpaint-candidate-prev');
-        const outpaintCandidateNext = this.container.querySelector('#easy-outpaint-candidate-next');
 
         dimPreset?.addEventListener('change', (e) => {
             if (e.target.value === 'custom') return;
@@ -865,7 +838,10 @@ export default class EasyPanel {
             const previousMode = this.state.easyMode;
             this.state.easyMode = e.target.value;
             if (previousMode === 'outpaint' && this.state.easyMode !== 'outpaint') {
-                this._resetOutpaintFrame({ clearCandidates: true, reason: 'mode-change' });
+                this._resetOutpaintFrame({ clearFrame: true, reason: 'mode-change' });
+            }
+            if (previousMode === 'inpaint' && this.state.easyMode !== 'inpaint') {
+                this.eventBus.emit('easy:inpaint:reset', { reason: 'mode-change' });
             }
             this.eventBus.emit('easy:mode:change', { mode: e.target.value });
             this.eventBus.emit('status:message', `Easy mode changed: ${this.getModeLabel(e.target.value)}`);
@@ -880,7 +856,10 @@ export default class EasyPanel {
                 const previousMode = this.state.easyMode;
                 this.state.easyMode = mode;
                 if (previousMode === 'outpaint' && mode !== 'outpaint') {
-                    this._resetOutpaintFrame({ clearCandidates: true, reason: 'mode-change' });
+                    this._resetOutpaintFrame({ clearFrame: true, reason: 'mode-change' });
+                }
+                if (previousMode === 'inpaint' && mode !== 'inpaint') {
+                    this.eventBus.emit('easy:inpaint:reset', { reason: 'mode-change' });
                 }
                 this.eventBus.emit('easy:mode:change', { mode });
                 this.eventBus.emit('status:message', `Easy mode changed: ${this.getModeLabel(mode)}`);
@@ -896,17 +875,7 @@ export default class EasyPanel {
         });
 
         outpaintSelectionClear?.addEventListener('click', () => {
-            this._resetOutpaintFrame({ clearCandidates: true, reason: 'clear' });
-        });
-
-        outpaintCandidateAccept?.addEventListener('click', () => {
-            this.eventBus.emit('easy:outpaint:candidate:accept');
-        });
-        outpaintCandidatePrev?.addEventListener('click', () => {
-            this.eventBus.emit('easy:outpaint:candidate:select', { direction: -1 });
-        });
-        outpaintCandidateNext?.addEventListener('click', () => {
-            this.eventBus.emit('easy:outpaint:candidate:select', { direction: 1 });
+            this._resetOutpaintFrame({ clearFrame: true, reason: 'clear' });
         });
 
         templateDropdown?.addEventListener('change', (e) => {
@@ -1003,9 +972,10 @@ export default class EasyPanel {
         const forceComposite = !!options.forceComposite;
         const preferLayerSource = !!options.preferLayerSource;
         const preferDrawSource = !!options.preferDrawSource;
+        const exportOptions = options.exportOptions || {};
         if (forceComposite) {
             try {
-                const composite = this.modules?.canvasView?.exportComposite?.();
+                const composite = this.modules?.canvasView?.exportComposite?.(exportOptions);
                 if (this._isImageDataUrl(composite)) {
                     return composite;
                 }
@@ -1028,7 +998,7 @@ export default class EasyPanel {
         }
 
         try {
-            const composite = this.modules?.canvasView?.exportComposite?.();
+            const composite = this.modules?.canvasView?.exportComposite?.(exportOptions);
             if (this._isImageDataUrl(composite)) {
                 return composite;
             }
@@ -1166,6 +1136,9 @@ export default class EasyPanel {
                 preferLayerSource: this.state.easyMode === 'outpaint',
                 forceComposite: this.state.easyMode !== 'outpaint',
                 preferDrawSource: false,
+                exportOptions: this.state.easyMode === 'inpaint'
+                    ? { includeMaskOverlay: false, includeTransient: false }
+                    : {},
             });
             if (this.state.easyMode === 'outpaint') {
                 if (!this.state.outpaintBaseSourceDataUrl) {
@@ -1176,7 +1149,16 @@ export default class EasyPanel {
             }
             executionPayload.sourceImageDataUrl = sourceImageDataUrl;
             if (this.state.easyMode === 'inpaint') {
-                executionPayload.maskImageDataUrl = this._getEasyMaskImageDataUrl();
+                let maskImageDataUrl = this._getEasyMaskImageDataUrl();
+                if (!this.state.inpaintBaseSourceDataUrl || !this.state.inpaintBaseMaskDataUrl) {
+                    this.state.inpaintBaseSourceDataUrl = sourceImageDataUrl;
+                    this.state.inpaintBaseMaskDataUrl = maskImageDataUrl;
+                } else {
+                    sourceImageDataUrl = this.state.inpaintBaseSourceDataUrl;
+                    maskImageDataUrl = this.state.inpaintBaseMaskDataUrl;
+                }
+                executionPayload.sourceImageDataUrl = sourceImageDataUrl;
+                executionPayload.maskImageDataUrl = maskImageDataUrl;
             }
             if (this.state.easyMode === 'outpaint') {
                 executionPayload.outpaintPadding = this.state.outpaintPadding || null;

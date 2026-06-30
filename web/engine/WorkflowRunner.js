@@ -505,24 +505,24 @@ export default class WorkflowRunner {
         }
         const patched = JSON.parse(JSON.stringify(graph || {}));
         const entries = Object.entries(patched);
-        const prompt = String(params.prompt ?? this._getGlobalPromptText?.() ?? "");
-        const negative = String(params.negativePrompt ?? this._getGlobalNegativePromptText?.() ?? "");
+        const prompt = String(params.prompt || this._getGlobalPromptText?.() || "");
+        const negative = String(params.negativePrompt || this._getGlobalNegativePromptText?.() || "");
         const model = String(params.generationModel || params.modelChoice || this.unetModel || "").trim();
         const vae = String(params.vaeModel || this.vaeModel || "").trim();
         const clip = String(params.clipModel || this.clip1Model || "").trim();
         const clipType = String(params.clipType || this.clipType || "flux2").trim();
         const sampler = String(params.sampler || this.sampler || "euler").trim();
         const scheduler = String(params.scheduler || this.scheduler || "beta").trim();
-        const steps = Math.max(1, Math.round(Number(params.steps ?? this.steps ?? 8) || 8));
-        const cfg = Number(params.cfg ?? this.cfg ?? 1) || 1;
+        const steps = Math.max(1, Math.round(Number(params.steps || this.steps || 8) || 8));
+        const cfg = Number(params.cfg || this.cfg || 1) || 1;
         const rawSeed = Number(params.seed ?? this.seed);
         const seed = Number.isFinite(rawSeed) && rawSeed >= 0
             ? Math.floor(rawSeed)
             : Math.floor(Math.random() * 1125899906842624);
         const denoiseDefault = (mode === "inpaint" || mode === "outpaint") ? 1 : 0.75;
         const denoise = Math.max(0, Math.min(1, Number(params.denoise ?? denoiseDefault) || denoiseDefault));
-        const width = Math.max(64, Math.round(Number(params.width ?? this.easyCanvasWidth ?? this.canvasWidth) || 1024));
-        const height = Math.max(64, Math.round(Number(params.height ?? this.easyCanvasHeight ?? this.canvasHeight) || 1024));
+        const width = Math.max(64, Math.round(Number(params.width || this.easyCanvasWidth || this.canvasWidth || 1024) || 1024));
+        const height = Math.max(64, Math.round(Number(params.height || this.easyCanvasHeight || this.canvasHeight || 1024) || 1024));
 
         let textIndex = 0;
         let loadImageIndex = 0;
@@ -597,24 +597,24 @@ export default class WorkflowRunner {
     _buildEasyReferenceI2IPrompt(params = {}, assets = {}, mode = "i2i") {
         const normalizedMode = "i2i";
         const modeLabel = "Image to Image";
-        const promptText = String(params.prompt ?? this._getGlobalPromptText?.() ?? "").trim();
-        const negativeText = String(params.negativePrompt ?? this._getGlobalNegativePromptText?.() ?? "");
+        const promptText = String(params.prompt || this._getGlobalPromptText?.() || "").trim();
+        const negativeText = String(params.negativePrompt || this._getGlobalNegativePromptText?.() || "");
         const model = String(params.generationModel || params.modelChoice || this.unetModel || "").trim();
         const vae = String(params.vaeModel || this.vaeModel || "").trim();
         const clip = String(params.clipModel || this.clip1Model || "").trim();
         const clipType = String(params.clipType || this.clipType || "flux2").trim();
         const sampler = String(params.sampler || "euler").trim();
         const scheduler = String(params.scheduler || "flux2").trim();
-        const steps = Math.max(1, Math.round(Number(params.steps ?? this.steps ?? 8) || 8));
-        const cfg = Number(params.cfg ?? this.cfg ?? 1) || 1;
+        const steps = Math.max(1, Math.round(Number(params.steps || this.steps || 8) || 8));
+        const cfg = Number(params.cfg || this.cfg || 1) || 1;
         const denoise = Math.max(0, Math.min(1, Number(params.denoise ?? 1) || 1));
         const rescaleReferenceImage = params.rescaleReferenceImage !== false;
         const rawSeed = Number(params.seed ?? this.seed);
         const seed = Number.isFinite(rawSeed) && rawSeed >= 0
             ? Math.floor(rawSeed)
             : Math.floor(Math.random() * 1125899906842624);
-        const width = Math.max(64, Math.round(Number(params.width ?? this.easyCanvasWidth ?? this.canvasWidth) || 1024));
-        const height = Math.max(64, Math.round(Number(params.height ?? this.easyCanvasHeight ?? this.canvasHeight) || 1024));
+        const width = Math.max(64, Math.round(Number(params.width || this.easyCanvasWidth || this.canvasWidth || 1024) || 1024));
+        const height = Math.max(64, Math.round(Number(params.height || this.easyCanvasHeight || this.canvasHeight || 1024) || 1024));
         const sourceImage = this._easyAssetLoadImageValue(assets.source);
 
         if (!model) throw new Error(`Easy ${modeLabel}: choose an installed Flux/Klein model in Settings.`);
@@ -653,7 +653,7 @@ export default class WorkflowRunner {
         const idSampling = id();
         prompt[idSampling] = {
             class_type: "ModelSamplingAuraFlow",
-            inputs: { model: [modelOut, 0], shift: Number(params.fl9bShift ?? this.auraFlowShift ?? 3) || 3 },
+            inputs: { model: [modelOut, 0], shift: Number(params.fl9bShift || this.auraFlowShift || 3) || 3 },
         };
         const idClip = id();
         prompt[idClip] = {
@@ -672,7 +672,7 @@ export default class WorkflowRunner {
                 inputs: {
                     image: referenceImageOut,
                     upscale_method: "lanczos",
-                    megapixels: Math.max(0.1, Number(params.referenceMegapixels ?? 1) || 1),
+                    megapixels: Math.max(0.1, Number(params.referenceMegapixels || 1) || 1),
                     resolution_steps: 1,
                 },
             };
@@ -775,8 +775,8 @@ export default class WorkflowRunner {
     }
 
     _buildEasyUniCanvasOutpaintPrompt(params = {}, assets = {}) {
-        const promptText = this._withOutpaintPromptSuffix(params.prompt ?? this._getGlobalPromptText?.() ?? "");
-        const negativeText = String(params.negativePrompt ?? this._getGlobalNegativePromptText?.() ?? "");
+        const promptText = this._withOutpaintPromptSuffix(params.prompt || this._getGlobalPromptText?.() || "");
+        const negativeText = String(params.negativePrompt || this._getGlobalNegativePromptText?.() || "");
         const model = String(params.generationModel || params.modelChoice || this.unetModel || "").trim();
         const vae = String(params.vaeModel || this.vaeModel || "").trim();
         const clip = String(params.clipModel || this.clip1Model || "").trim();
@@ -789,8 +789,8 @@ export default class WorkflowRunner {
         const seed = Number.isFinite(rawSeed) && rawSeed >= 0
             ? Math.floor(rawSeed)
             : Math.floor(Math.random() * 1125899906842624);
-        const width = Math.max(64, Math.round(Number(params.width ?? this.easyCanvasWidth ?? this.canvasWidth) || 1024));
-        const height = Math.max(64, Math.round(Number(params.height ?? this.easyCanvasHeight ?? this.canvasHeight) || 1024));
+        const width = Math.max(64, Math.round(Number(params.width || this.easyCanvasWidth || this.canvasWidth || 1024) || 1024));
+        const height = Math.max(64, Math.round(Number(params.height || this.easyCanvasHeight || this.canvasHeight || 1024) || 1024));
         const sourceImage = this._easyAssetLoadImageValue(assets.source);
         const maskImage = this._easyAssetLoadImageValue(assets.mask);
 
@@ -978,12 +978,25 @@ export default class WorkflowRunner {
         const data = await response.json().catch(() => ({}));
         const prefix = this._easyModeOutputPrefix(mode);
         const minMtime = Number(options.minMtime || 0) || 0;
-        const item = (Array.isArray(data?.items) ? data.items : []).find((entry) => {
+        const matches = (Array.isArray(data?.items) ? data.items : []).filter((entry) => {
             const name = String(entry?.name || entry?.file || "").split(/[\\/]/).pop();
             const mtime = Number(entry?.mtime || 0) || 0;
-            return name.startsWith(prefix) && (!minMtime || mtime >= minMtime);
-        });
-        if (!item) return null;
+            if (!name.startsWith(prefix)) return false;
+            if (name.includes("_before_") || name.includes("_source") || name.includes("_mask")) return false;
+            return !minMtime || mtime >= minMtime;
+        }).sort((a, b) => (Number(b?.mtime || 0) || 0) - (Number(a?.mtime || 0) || 0));
+        const item = matches[0] || null;
+        if (!item) {
+            const fallback = (Array.isArray(data?.items) ? data.items : []).filter((entry) => {
+                const name = String(entry?.name || entry?.file || "").split(/[\\/]/).pop();
+                const mtime = Number(entry?.mtime || 0) || 0;
+                return name.startsWith(prefix) && (!minMtime || mtime >= minMtime);
+            }).sort((a, b) => (Number(b?.mtime || 0) || 0) - (Number(a?.mtime || 0) || 0))[0] || null;
+            if (!fallback) return null;
+            const name = String(fallback.name || fallback.file || "").trim();
+            const url = String(fallback.url || `${Constants.EASY_API_BASE || "/iamccs/goyai_easy"}/gallery/get?name=${encodeURIComponent(name)}`);
+            return name && url ? { name, url, images: [{ filename: name, subfolder: EASY_OUTPUT_PREFIX, type: "output" }] } : null;
+        }
         const name = String(item.name || item.file || "").trim();
         const url = String(item.url || `${Constants.EASY_API_BASE || "/iamccs/goyai_easy"}/gallery/get?name=${encodeURIComponent(name)}`);
         return name && url ? { name, url, images: [{ filename: name, subfolder: EASY_OUTPUT_PREFIX, type: "output" }] } : null;
@@ -1119,7 +1132,7 @@ export default class WorkflowRunner {
                 };
             }
             const sourceAsset = await this._saveEasyStandaloneAsset(sourceImageDataUrl, `goyai_easy_${mode}_source`, {
-                gallery: mode !== "outpaint",
+                gallery: mode !== "outpaint" && mode !== "inpaint",
                 gallery_prefix: `goyai_easy_${mode}_before`,
             });
             if (sourceAsset?.gallery_url) {
@@ -1259,9 +1272,9 @@ export default class WorkflowRunner {
         const seed = params.seed ?? this.seed;
         const steps = params.steps ?? this.steps;
         const cfg = params.cfg ?? this.cfg;
-        const sampler = params.sampler ?? this.sampler;
-        const scheduler = params.scheduler ?? this.scheduler;
-        const prompt = params.prompt ?? this._getGlobalPromptText();
+        const sampler = params.sampler || this.sampler;
+        const scheduler = params.scheduler || this.scheduler;
+        const prompt = params.prompt || this._getGlobalPromptText();
         const unet = params.generationModel || params.modelChoice || params.unet || this.unetModel;
         const vae = params.vaeModel || params.vae || this.vaeModel;
         const clip = params.clipModel || params.clip || this.clip1Model;
@@ -1309,7 +1322,7 @@ export default class WorkflowRunner {
         return graph;
     }
 
-    // Scenario Z (TXT2IMG via Z-Image) â€” per DOCUMENTO 6 architecture
+    // Scenario Z (TXT2IMG via Z-Image) - per DOCUMENTO 6 architecture
 
     _getUiWorkflowWidgetInputs(node, params = {}) {
         const type = String(node?.type || "");
@@ -1351,8 +1364,8 @@ export default class WorkflowRunner {
         }
         if (type === "SeedVR2VideoUpscaler") {
             const seed = Number(params.seed);
-            const resolution = Number(params.seedvr2Resolution ?? params.resolution ?? values[2] ?? 2048);
-            const maxResolution = Number(params.seedvr2MaxResolution ?? params.maxResolution ?? values[3] ?? 4096);
+            const resolution = Number(params.seedvr2Resolution || params.resolution || values[2] || 2048);
+            const maxResolution = Number(params.seedvr2MaxResolution || params.maxResolution || values[3] || 4096);
             return {
                 seed: Number.isFinite(seed) && seed >= 0 ? Math.floor(seed) : Math.floor(Math.random() * 4294967295),
                 resolution: Number.isFinite(resolution) ? Math.max(16, Math.round(resolution / 2) * 2) : 2048,
@@ -1369,7 +1382,7 @@ export default class WorkflowRunner {
             };
         }
         if (type === "ImageScaleBy") {
-            const scaleBy = Number(params.scale_by ?? params.scaleBy ?? params.seedvr2ScaleBy ?? values[1] ?? 1);
+            const scaleBy = Number(params.scale_by || params.scaleBy || params.seedvr2ScaleBy || values[1] || 1);
             return {
                 upscale_method: String(params.upscale_method || params.upscaleMethod || values[0] || "lanczos"),
                 scale_by: Number.isFinite(scaleBy) && scaleBy > 0 ? scaleBy : 1,
@@ -1416,16 +1429,16 @@ export default class WorkflowRunner {
         if (type === "EmptySD3LatentImage" || type === "EmptyLatentImage" || type === "EmptyFlux2LatentImage") {
             const dims = this.getGenerationDimensions?.() || {};
             return {
-                width: Math.max(64, Math.round(Number(params.width ?? dims.width ?? this.easyCanvasWidth ?? values[0] ?? 1024))),
-                height: Math.max(64, Math.round(Number(params.height ?? dims.height ?? this.easyCanvasHeight ?? values[1] ?? 1024))),
+                width: Math.max(64, Math.round(Number(params.width || dims.width || this.easyCanvasWidth || values[0] || 1024) || 1024)),
+                height: Math.max(64, Math.round(Number(params.height || dims.height || this.easyCanvasHeight || values[1] || 1024) || 1024)),
                 batch_size: Math.max(1, Math.round(Number(values[2] || params.batchSize || this.zBatchSize || 1))),
             };
         }
         if (type === "ImageScaleToTotalPixels") {
             return {
                 upscale_method: String(params.referenceUpscaleMethod || values[0] || "nearest-exact"),
-                megapixels: Number(params.referenceMegapixels ?? values[1] ?? 1) || 1,
-                resolution_steps: Math.max(1, Math.round(Number(params.referenceResolutionSteps ?? values[2] ?? 1) || 1)),
+                megapixels: Number(params.referenceMegapixels || values[1] || 1) || 1,
+                resolution_steps: Math.max(1, Math.round(Number(params.referenceResolutionSteps || values[2] || 1) || 1)),
             };
         }
         if (type === "ImagePadKJ") {
@@ -1455,8 +1468,8 @@ export default class WorkflowRunner {
             const rawSeed = Number(params.seed ?? values[0] ?? this.seed);
             return {
                 seed: Number.isFinite(rawSeed) && rawSeed >= 0 ? Math.floor(rawSeed) : Math.floor(Math.random() * 1125899906842624),
-                steps: Math.max(1, Math.round(Number(params.steps ?? values[2] ?? this.steps ?? 8) || 8)),
-                cfg: Number(params.cfg ?? values[3] ?? this.cfg ?? 1) || 1,
+                steps: Math.max(1, Math.round(Number(params.steps || values[2] || this.steps || 8) || 8)),
+                cfg: Number(params.cfg || values[3] || this.cfg || 1) || 1,
                 sampler_name: String(params.sampler || values[4] || this.sampler || "res_multistep"),
                 scheduler: String(params.scheduler || values[5] || this.scheduler || "simple"),
                 denoise: Math.max(0, Math.min(1, Number(params.denoise ?? values[6] ?? 1) || 1)),
@@ -1471,22 +1484,22 @@ export default class WorkflowRunner {
         }
         if (type === "Flux2Scheduler") {
             return {
-                steps: Math.max(1, Math.round(Number(params.steps ?? values[0] ?? this.steps ?? 8) || 8)),
-                width: Math.max(64, Math.round(Number(params.width ?? values[1] ?? this.easyCanvasWidth ?? 1024))),
-                height: Math.max(64, Math.round(Number(params.height ?? values[2] ?? this.easyCanvasHeight ?? 1024))),
+                steps: Math.max(1, Math.round(Number(params.steps || values[0] || this.steps || 8) || 8)),
+                width: Math.max(64, Math.round(Number(params.width || values[1] || this.easyCanvasWidth || 1024) || 1024)),
+                height: Math.max(64, Math.round(Number(params.height || values[2] || this.easyCanvasHeight || 1024) || 1024)),
             };
         }
         if (type === "CFGGuider") {
-            return { cfg: Number(params.cfg ?? values[0] ?? this.cfg ?? 1) || 1 };
+            return { cfg: Number(params.cfg || values[0] || this.cfg || 1) || 1 };
         }
         if (type === "LoraLoaderModelOnly") {
             return {
                 lora_name: String(values[0] || ""),
-                strength_model: Number(values[1] ?? 1) || 1,
+                strength_model: Number(values[1] || 1) || 1,
             };
         }
         if (type === "ModelSamplingAuraFlow") {
-            return { shift: Number(values[0] ?? this.auraFlowShift ?? 3) || 3 };
+            return { shift: Number(values[0] || this.auraFlowShift || 3) || 3 };
         }
         return {};
     }
@@ -1591,13 +1604,13 @@ export default class WorkflowRunner {
             return String(params.fl9bSampler || params.sampler || values[0] || this.sampler || "res_2s");
         }
         if (type === "primitivefloat") {
-            return Number(params.cfg ?? values[0] ?? this.cfg ?? 1) || 1;
+            return Number(params.cfg || values[0] || this.cfg || 1) || 1;
         }
         if (type === "primitiveint" || type === "easy int") {
-            return Math.max(1, Math.round(Number(params.steps ?? values[0] ?? this.steps ?? 8) || 8));
+            return Math.max(1, Math.round(Number(params.steps || values[0] || this.steps || 8) || 8));
         }
         if (type === "primitivestringmultiline") {
-            return String(params.prompt ?? values[0] ?? this._getGlobalPromptText?.() ?? "");
+            return String(params.prompt || values[0] || this._getGlobalPromptText?.() || "");
         }
         return values[0];
     }
@@ -1657,7 +1670,7 @@ export default class WorkflowRunner {
     }
 
     _applyNegativeTextEncodeFallback(prompt = {}, negativeText = "") {
-        const negative = String(negativeText ?? this._getGlobalNegativePromptText?.() ?? "");
+        const negative = String(negativeText || this._getGlobalNegativePromptText?.() || "");
         if (!negative.trim()) return false;
         const entries = Object.entries(prompt || {});
         const clipEncodeEntries = entries.filter(([_id, node]) => String(node?.class_type || "") === "CLIPTextEncode");

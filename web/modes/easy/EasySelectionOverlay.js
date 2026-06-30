@@ -41,6 +41,7 @@ export default class EasySelectionOverlay {
         this.drag = null;
         this.rect = null;
         this.outpaintPadding = null;
+        this.outpaintPreviewActive = false;
         this._trackingFrame = 0;
         this._unsubs = [];
 
@@ -51,6 +52,10 @@ export default class EasySelectionOverlay {
         this.box = document.createElement('div');
         this.box.className = 'easy-selection-overlay__box';
         this.overlay.appendChild(this.box);
+        this.innerBox = document.createElement('div');
+        this.innerBox.className = 'easy-selection-overlay__inner';
+        this.innerBox.style.display = 'none';
+        this.overlay.appendChild(this.innerBox);
         this.readout = document.createElement('div');
         this.readout.className = 'easy-selection-overlay__readout';
         this.readout.style.display = 'none';
@@ -81,11 +86,26 @@ export default class EasySelectionOverlay {
         this._unsubs.push(this.eventBus.on('easy:outpaint:reset', () => {
             const previousMode = this.mode;
             this.mode = 'outpaint';
+            this.outpaintPreviewActive = false;
             this.clearSelection();
             this.setEnabled(false);
             this.mode = previousMode;
         }));
-        this._unsubs.push(this.eventBus.on('canvas:resize', () => this.clearSelection()));
+        this._unsubs.push(this.eventBus.on('easy:outpaint:preview', ({ active } = {}) => {
+            this.outpaintPreviewActive = !!active;
+            if (this.mode === 'outpaint' && this.enabled) {
+                this._syncOverlayBounds();
+                this._renderRect();
+            }
+        }));
+        this._unsubs.push(this.eventBus.on('canvas:resize', () => {
+            if (this.mode === 'outpaint' && this.outpaintPadding) {
+                this._syncOverlayBounds();
+                this._renderRect();
+                return;
+            }
+            this.clearSelection();
+        }));
         this._unsubs.push(this.eventBus.on('project:clear', () => this.clearSelection()));
     }
 
@@ -312,6 +332,7 @@ export default class EasySelectionOverlay {
         const metrics = this._syncOverlayBounds();
         if (!metrics || !this.rect) {
             this.box.style.display = 'none';
+            this.innerBox.style.display = 'none';
             this.readout.style.display = 'none';
             return;
         }
@@ -321,7 +342,7 @@ export default class EasySelectionOverlay {
         let width = this.mode === 'outpaint' ? this.rect.width : this.rect.width / metrics.scaleX;
         let height = this.mode === 'outpaint' ? this.rect.height : this.rect.height / metrics.scaleY;
 
-        if (this.mode === 'outpaint' && this.outpaintPadding) {
+        if (this.mode === 'outpaint' && this.outpaintPadding && !this.outpaintPreviewActive) {
             const canvasBox = metrics.canvasBox;
             const pad = this.outpaintPadding;
             left = canvasBox.left - ((Number(pad.left) || 0) / metrics.scaleX);
@@ -331,7 +352,15 @@ export default class EasySelectionOverlay {
             width = Math.max(1, right - left);
             height = Math.max(1, bottom - top);
             this.rect = { x: left, y: top, width, height };
+        } else if (this.mode === 'outpaint' && this.outpaintPreviewActive) {
+            const canvasBox = metrics.canvasBox;
+            left = canvasBox.left;
+            top = canvasBox.top;
+            width = canvasBox.width;
+            height = canvasBox.height;
+            this.rect = { x: left, y: top, width, height };
         }
+        const showOutpaintInner = this.mode === 'outpaint' && this.outpaintPreviewActive && this.outpaintPadding;
 
         Object.assign(this.box.style, {
             display: 'block',
@@ -340,6 +369,22 @@ export default class EasySelectionOverlay {
             width: `${width}px`,
             height: `${height}px`,
         });
+        if (showOutpaintInner) {
+            const pad = this.outpaintPadding || {};
+            const innerLeft = left + ((Number(pad.left) || 0) / metrics.scaleX);
+            const innerTop = top + ((Number(pad.top) || 0) / metrics.scaleY);
+            const innerWidth = Math.max(1, width - (((Number(pad.left) || 0) + (Number(pad.right) || 0)) / metrics.scaleX));
+            const innerHeight = Math.max(1, height - (((Number(pad.top) || 0) + (Number(pad.bottom) || 0)) / metrics.scaleY));
+            Object.assign(this.innerBox.style, {
+                display: 'block',
+                left: `${innerLeft}px`,
+                top: `${innerTop}px`,
+                width: `${innerWidth}px`,
+                height: `${innerHeight}px`,
+            });
+        } else {
+            this.innerBox.style.display = 'none';
+        }
         const label = this.mode === 'outpaint' && this.outpaintPadding
             ? `L ${Math.round(this.outpaintPadding.left || 0)}  T ${Math.round(this.outpaintPadding.top || 0)}  R ${Math.round(this.outpaintPadding.right || 0)}  B ${Math.round(this.outpaintPadding.bottom || 0)}`
             : `${Math.round(this.rect.width)} x ${Math.round(this.rect.height)}`;
@@ -417,6 +462,7 @@ export default class EasySelectionOverlay {
         this.drag = null;
         this.rect = null;
         this.outpaintPadding = null;
+        this.outpaintPreviewActive = false;
         this._renderRect();
         if (this.mode === 'outpaint') {
             this.eventBus.emit('fl2o:padding:set', { left: 0, top: 0, right: 0, bottom: 0 });

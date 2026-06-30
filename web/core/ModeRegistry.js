@@ -4,7 +4,7 @@ export const MODE_DEFINITIONS = Object.freeze([
         label: "EASY",
         tier: "public",
         status: "active",
-        loader: () => import("../modes/easy/EasyMode.js?v=20260630_EASY_OUTPAINT_ACCEPT02"),
+        loader: () => import("../modes/easy/EasyMode.js?v=20260630_EASY_IMMEDIATE_EDIT_RESULT02"),
     },
 ]);
 

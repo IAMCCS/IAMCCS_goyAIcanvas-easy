@@ -58,6 +58,7 @@ export default class EasyDrawPanel {
                 this.state.tool = 'brush';
                 this.state.brushColor = EASY_INPAINT_MASK_COLOR;
                 this._applyToolState();
+                this._ensureIntentLayer();
             } else if (this.state.easyMode === 'draw') {
                 this.state.tool = 'pencil';
                 this.state.brushColor = '#000000';

@@ -1,10 +1,10 @@
 import UIHelpers from "../utils/UIHelpers.js";
 import { debugTrace } from "../utils/DebugTrace.js";
 import Constants from "../utils/Constants.js";
-import EasyCanvasKernel from "./EasyCanvasKernel.js?v=20260630_EASY_OUTPAINT_ACCEPT02";
-import TransformMath from "../engine/EasyTransformMath.js?v=20260630_EASY_OUTPAINT_ACCEPT02";
-import EasyCanvasDocument from "./EasyCanvasDocument.js?v=20260630_EASY_OUTPAINT_ACCEPT02";
-import EasyCropController from "./EasyCropController.js?v=20260630_EASY_OUTPAINT_ACCEPT02";
+import EasyCanvasKernel from "./EasyCanvasKernel.js?v=20260630_EASY_IMMEDIATE_EDIT_RESULT02";
+import TransformMath from "../engine/EasyTransformMath.js?v=20260630_EASY_IMMEDIATE_EDIT_RESULT02";
+import EasyCanvasDocument from "./EasyCanvasDocument.js?v=20260630_EASY_IMMEDIATE_EDIT_RESULT02";
+import EasyCropController from "./EasyCropController.js?v=20260630_EASY_IMMEDIATE_EDIT_RESULT02";
 
 export default class CanvasView {
     constructor(hostElement, eventBus, layerManager, maskManager) {
@@ -1063,8 +1063,8 @@ export default class CanvasView {
         }
     }
 
-    exportComposite() {
-        return this.renderer.exportComposite();
+    exportComposite(options = {}) {
+        return this.renderer.exportComposite(options);
     }
 
     _setCompareImage(dataUrl) {
@@ -1511,10 +1511,10 @@ export default class CanvasView {
         try {
             const img = new Image();
             img.src = src;
-            const w = Math.max(1, Math.floor(size?.w ?? 1));
-            const h = Math.max(1, Math.floor(size?.h ?? 1));
-            const dx = Math.floor(offset?.dx ?? 0);
-            const dy = Math.floor(offset?.dy ?? 0);
+            const w = Math.max(1, Math.floor(Number(size?.w || 1)));
+            const h = Math.max(1, Math.floor(Number(size?.h || 1)));
+            const dx = Math.floor(Number(offset?.dx || 0));
+            const dy = Math.floor(Number(offset?.dy || 0));
             const c = document.createElement("canvas");
             c.width = w;
             c.height = h;
@@ -1529,10 +1529,10 @@ export default class CanvasView {
 
     async _padDataUrlAsync(src, size, offset) {
         try {
-            const w = Math.max(1, Math.floor(size?.w ?? 1));
-            const h = Math.max(1, Math.floor(size?.h ?? 1));
-            const dx = Math.floor(offset?.dx ?? 0);
-            const dy = Math.floor(offset?.dy ?? 0);
+            const w = Math.max(1, Math.floor(Number(size?.w || 1)));
+            const h = Math.max(1, Math.floor(Number(size?.h || 1)));
+            const dx = Math.floor(Number(offset?.dx || 0));
+            const dy = Math.floor(Number(offset?.dy || 0));
             const img = await this._loadImageAsync(src);
             const c = document.createElement("canvas");
             c.width = w;
@@ -1682,7 +1682,7 @@ export default class CanvasView {
         if (!state.original) state.original = current;
 
         // Update map entry
-        state.map[effect] = { enabled: !!enabled, amount: Math.max(0, Math.min(1, amount ?? 1)) };
+        state.map[effect] = { enabled: !!enabled, amount: Math.max(0, Math.min(1, Number(amount ?? 1) || 1)) };
 
         // If all effects disabled, restore original
         const anyEnabled = Object.values(state.map).some(e => e?.enabled);
@@ -1712,7 +1712,7 @@ export default class CanvasView {
     }
 
     _applyEffectURL(url, effect, amount=1.0) {
-        const amt = Math.max(0, Math.min(1, amount ?? 1));
+        const amt = Math.max(0, Math.min(1, Number(amount ?? 1) || 1));
         return this._processImageURL(url, (imgData) => {
             const orig = new Uint8ClampedArray(imgData.data);
             const processed = this._processByEffect(imgData, effect) || imgData;
@@ -1884,7 +1884,11 @@ export default class CanvasView {
     _applyLUT(imgData, lutArr) {
         const lut = Array.isArray(lutArr) ? lutArr : [];
         const data = imgData.data;
-        for (let i=0;i<data.length;i+=4){ data[i]=lut[data[i]]??data[i]; data[i+1]=lut[data[i+1]]??data[i+1]; data[i+2]=lut[data[i+2]]??data[i+2]; }
+        for (let i = 0; i < data.length; i += 4) {
+            data[i] = lut[data[i]] ?? data[i];
+            data[i + 1] = lut[data[i + 1]] ?? data[i + 1];
+            data[i + 2] = lut[data[i + 2]] ?? data[i + 2];
+        }
         return imgData;
     }
 

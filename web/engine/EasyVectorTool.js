@@ -226,7 +226,7 @@ export default class VectorTool {
             return;
         }
         if (this._activePointerId != null && e.pointerId !== this._activePointerId) return;
-        this._activePointerId = e.pointerId ?? null;
+        this._activePointerId = e.pointerId ? null;
         this.hitLayer.setPointerCapture?.(e.pointerId);
         e.preventDefault();
         e.stopPropagation();
@@ -311,8 +311,8 @@ export default class VectorTool {
 
         if (this.mode === 'dragging-point' && this.selectedPointIndex >= 0) {
             const pt = this.activePath.points[this.selectedPointIndex];
-            const dx = p.x - (this._lastMove?.x ?? p.x);
-            const dy = p.y - (this._lastMove?.y ?? p.y);
+            const dx = p.x - (this._lastMove?.x ? p.x);
+            const dy = p.y - (this._lastMove?.y ? p.y);
             pt.x += dx; pt.y += dy;
             if (pt.handleIn) { pt.handleIn.x += dx; pt.handleIn.y += dy; }
             if (pt.handleOut) { pt.handleOut.x += dx; pt.handleOut.y += dy; }

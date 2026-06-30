@@ -713,36 +713,6 @@
     letter-spacing: 0.04em;
 }
 
-.easy-panel__candidate-row {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 0.55rem;
-    align-items: center;
-    margin-top: 0.55rem;
-}
-
-.easy-panel__candidate-row .easy-panel__button {
-    min-height: 38px;
-    padding: 0.62rem 0.8rem;
-    border-radius: 12px;
-    font-size: 0.72rem;
-}
-
-.easy-panel__candidate-stepper {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.4rem;
-    min-height: 38px;
-    padding: 0.25rem 0.35rem;
-    border: 1px solid rgba(240, 179, 94, 0.32);
-    border-radius: 12px;
-    background: rgba(0, 0, 0, 0.28);
-    color: #f7cb8d;
-    font-weight: 800;
-    white-space: nowrap;
-}
-
 .easy-panel__mini-button {
     width: 28px;
     height: 28px;
@@ -787,6 +757,18 @@
     background: rgba(240, 179, 94, 0.13);
     outline: 1px dashed rgba(255, 255, 255, 0.34);
     outline-offset: -7px;
+}
+
+.easy-selection-overlay__inner {
+    position: absolute;
+    display: none;
+    box-sizing: border-box;
+    border: 2px solid rgba(68, 196, 255, 0.95);
+    background: transparent;
+    box-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.42),
+        0 0 22px rgba(68, 196, 255, 0.26);
+    pointer-events: none;
 }
 
 .easy-selection-overlay__readout {

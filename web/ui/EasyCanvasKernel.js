@@ -75,8 +75,10 @@ export default class EasyCanvasKernel {
         });
     }
 
-    render() {
+    render(options = {}) {
         if (!this.ctx) return;
+        const includeMaskOverlay = options.includeMaskOverlay !== false;
+        const includeTransient = options.includeTransient !== false;
         const width = this.canvas.width || 1;
         const height = this.canvas.height || 1;
         const layers = this.layerManager?.getLayers?.() || [];
@@ -92,6 +94,7 @@ export default class EasyCanvasKernel {
         this.ctx.restore();
 
         for (const layer of layers) {
+            if (!includeTransient && layer?.metadata?.transient) continue;
             const liveCanvas = this._liveCanvasForLayer(layer, false);
             if (!layer || layer.id === "layer_background" || layer.visible === false || (!layer.bitmap && !liveCanvas)) continue;
             const cached = liveCanvas || this._imageForLayer(layer);
@@ -103,14 +106,18 @@ export default class EasyCanvasKernel {
             this.ctx.restore();
         }
 
-        if (this.maskManager?.isOverlayEnabled?.() || this.maskManager?.isPaintToMask?.()) {
+        if (includeMaskOverlay && (this.maskManager?.isOverlayEnabled?.() || this.maskManager?.isPaintToMask?.())) {
             this._drawMaskOverlays(layers);
         }
     }
 
-    exportComposite() {
-        this.render();
-        return this.canvas.toDataURL("image/png");
+    exportComposite(options = {}) {
+        this.render(options);
+        const dataUrl = this.canvas.toDataURL("image/png");
+        if (options.includeMaskOverlay === false || options.includeTransient === false) {
+            this.requestRender();
+        }
+        return dataUrl;
     }
 
     async bakeLayerBitmapOnWhite(layerId) {

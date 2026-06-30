@@ -1,6 +1,6 @@
 export const GOYA_BUILD_INFO = Object.freeze({
-    id: 'GOYA-EASY-OUTPAINT-WORKFLOW-MATCH-20260630-01',
-    label: 'Easy outpaint workflow match 01',
+    id: 'GOYA-EASY-IMMEDIATE-EDIT-RESULT-20260630-02',
+    label: 'Easy immediate edit result 02',
     date: '2026-06-30',
     entrypoint: 'web/index.js -> web/IAMCCS_EasyFullNodeUI.js',
 });

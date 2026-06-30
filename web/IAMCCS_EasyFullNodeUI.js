@@ -1,21 +1,21 @@
 import EventBus from "./utils/EventBus.js";
 import Constants from "./utils/Constants.js";
-import CanvasView from "./ui/Canvas.js?v=20260630_EASY_OUTPAINT_ACCEPT02";
-import CanvasToolbar from "./ui/CanvasToolbar.js?v=20260630_EASY_OUTPAINT_ACCEPT02";
-import StatusBar from "./ui/StatusBar.js?v=20260630_EASY_OUTPAINT_ACCEPT02";
-import EasyLayerManager from "./engine/EasyLayerManager.js?v=20260630_EASY_OUTPAINT_ACCEPT02";
-import EasyMaskManager from "./engine/EasyMaskManager.js?v=20260630_EASY_OUTPAINT_ACCEPT02";
-import EasyPromptManager from "./engine/EasyPromptManager.js?v=20260630_EASY_OUTPAINT_ACCEPT02";
-import EasyStateBridge from "./engine/EasyStateBridge.js?v=20260630_EASY_OUTPAINT_ACCEPT02";
-import WorkflowRunner from "./engine/WorkflowRunner.js?v=20260630_EASY_OUTPAINT_ACCEPT02";
-import EasySettingsPanel from "./modes/easy/EasySettingsPanel.js?v=20260630_EASY_OUTPAINT_ACCEPT02";
+import CanvasView from "./ui/Canvas.js?v=20260630_EASY_IMMEDIATE_EDIT_RESULT02";
+import CanvasToolbar from "./ui/CanvasToolbar.js?v=20260630_EASY_IMMEDIATE_EDIT_RESULT02";
+import StatusBar from "./ui/StatusBar.js?v=20260630_EASY_IMMEDIATE_EDIT_RESULT02";
+import EasyLayerManager from "./engine/EasyLayerManager.js?v=20260630_EASY_IMMEDIATE_EDIT_RESULT02";
+import EasyMaskManager from "./engine/EasyMaskManager.js?v=20260630_EASY_IMMEDIATE_EDIT_RESULT02";
+import EasyPromptManager from "./engine/EasyPromptManager.js?v=20260630_EASY_IMMEDIATE_EDIT_RESULT02";
+import EasyStateBridge from "./engine/EasyStateBridge.js?v=20260630_EASY_IMMEDIATE_EDIT_RESULT02";
+import WorkflowRunner from "./engine/WorkflowRunner.js?v=20260630_EASY_IMMEDIATE_EDIT_RESULT02";
+import EasySettingsPanel from "./modes/easy/EasySettingsPanel.js?v=20260630_EASY_IMMEDIATE_EDIT_RESULT02";
 import UIHelpers from "./utils/UIHelpers.js";
-import ModeSwitchBar from "./modes/ModeSwitchBar.js?v=20260630_EASY_OUTPAINT_ACCEPT02";
-import LayoutRouter from "./modes/LayoutRouter.js?v=20260630_EASY_OUTPAINT_ACCEPT02";
-import { GOYA_BUILD_INFO, getGoyaBuildLabel } from "./app/BuildInfo.js?v=20260630_EASY_OUTPAINT_ACCEPT02";
+import ModeSwitchBar from "./modes/ModeSwitchBar.js?v=20260630_EASY_IMMEDIATE_EDIT_RESULT02";
+import LayoutRouter from "./modes/LayoutRouter.js?v=20260630_EASY_IMMEDIATE_EDIT_RESULT02";
+import { GOYA_BUILD_INFO, getGoyaBuildLabel } from "./app/BuildInfo.js?v=20260630_EASY_IMMEDIATE_EDIT_RESULT02";
 
-const EASY_MODE_CSS_URL = new URL("./styles/easy_mode.css", import.meta.url).href + "?v=20260630_EASY_OUTPAINT_ACCEPT02";
-const NODE_PREVIEW_CSS_URL = new URL("./styles/node_preview.css", import.meta.url).href + "?v=20260630_EASY_OUTPAINT_ACCEPT02";const EASY_STATE_SCHEMA = "iamccs.goyai.easy.state";
+const EASY_MODE_CSS_URL = new URL("./styles/easy_mode.css", import.meta.url).href + "?v=20260630_EASY_IMMEDIATE_EDIT_RESULT02";
+const NODE_PREVIEW_CSS_URL = new URL("./styles/node_preview.css", import.meta.url).href + "?v=20260630_EASY_IMMEDIATE_EDIT_RESULT02";const EASY_STATE_SCHEMA = "iamccs.goyai.easy.state";
 const EASY_STATE_BUILD = "IAMCCS_GoyAIcanvas_EasyFull_AllInOne_State_20260626";
 let stylesheetInjected = false;
 
@@ -208,13 +208,13 @@ export default class IAMCCS_EasyFullNodeUI {
         this._hydrating = false;
         this._hydratedFromBackend = false;
         this._ignoreImportedResizeUntil = 0;
-    this.canvasWidth = Constants.CANVAS_WIDTH;
-    this.canvasHeight = Constants.CANVAS_HEIGHT;
-    this.editorOpen = false;
-    this.hasUnsavedChanges = false;
-    this._easyProjectId = `goya_easy_${this.node?.id ?? "node"}_${Date.now()}`;
-    this._easyLastCompositeDataUrl = "";
-    this._easyOutpaintSourcePrepared = false;
+        this.canvasWidth = Constants.CANVAS_WIDTH;
+        this.canvasHeight = Constants.CANVAS_HEIGHT;
+        this.editorOpen = false;
+        this.hasUnsavedChanges = false;
+        this._easyProjectId = `goya_easy_${this.node?.id || "node"}_${Date.now()}`;
+        this._easyLastCompositeDataUrl = "";
+        this._easyOutpaintSourcePrepared = false;
 
         this._hidePayloadWidget();
         this._createDomWidget();
@@ -1067,20 +1067,52 @@ export default class IAMCCS_EasyFullNodeUI {
             const dataUrl = await this._readImageFileAsDataUrl(file);
             const info = await this._decodeImageSize(dataUrl);
             const sourceCanvas = this._makeCanvasFromDecodedImage(info.image, info.width, info.height);
-            const shouldReplace = payload?.replace !== false;
+            const previewRole = String(payload?.previewRole || "").trim();
+            const shouldReplace = !previewRole && payload?.replace !== false;
+            const previousActiveLayerId = this.layerManager?.getActiveLayerId?.() || null;
             if (shouldReplace) {
                 this.layerManager?.bootstrapDefaultLayers?.({ reset: true });
             }
-            const layer = this._importDataUrlAsNewLayer(dataUrl, file.name || "Imported Image", {
+            let layer = null;
+            const metadata = {
                 source: {
-                    type: "import",
+                    type: previewRole ? "preview" : "import",
                     name: file.name || "image",
                     mode: payload?.source || "easy-import",
                 },
                 originalWidth: info.width,
                 originalHeight: info.height,
-                easyRole: "import",
-            });
+                easyRole: previewRole || "import",
+                transient: !!previewRole,
+            };
+            if (previewRole) {
+                layer = (this.layerManager?.getLayers?.() || [])
+                    .find((item) => item?.metadata?.easyRole === previewRole) || null;
+                if (layer) {
+                    this.layerManager.updateLayer({
+                        id: layer.id,
+                        patch: {
+                            name: file.name || layer.name || "Easy Preview Layer",
+                            bitmap: dataUrl,
+                            mask: "",
+                            visible: true,
+                            opacity: 1,
+                            blendMode: "normal",
+                            metadata,
+                        },
+                    });
+                    this.layerManager.moveToTop?.(layer.id);
+                }
+            }
+            if (!layer) {
+                layer = this._importDataUrlAsNewLayer(dataUrl, file.name || "Imported Image", metadata);
+            }
+            const keepRoleOnTop = String(payload?.keepRoleOnTop || "").trim();
+            if (previewRole && keepRoleOnTop) {
+                const topLayer = (this.layerManager?.getLayers?.() || [])
+                    .find((item) => item?.metadata?.easyRole === keepRoleOnTop) || null;
+                if (topLayer?.id) this.layerManager.moveToTop?.(topLayer.id);
+            }
             if (!layer) throw new Error("Layer creation failed");
             this.canvasWidth = info.width;
             this.canvasHeight = info.height;
@@ -1096,7 +1128,11 @@ export default class IAMCCS_EasyFullNodeUI {
             } catch (renderError) {
                 console.warn("[GoyaEasyImport] renderer cache update failed", renderError);
             }
-            this.layerManager?.selectLayer?.(layer.id);
+            if (previewRole && previousActiveLayerId && this.layerManager?.getLayerById?.(previousActiveLayerId)) {
+                this.layerManager?.selectLayer?.(previousActiveLayerId);
+            } else if (!previewRole) {
+                this.layerManager?.selectLayer?.(layer.id);
+            }
             setTimeout(() => {
                 try {
                     this.canvasView?.renderer?._syncImageCache?.(this.layerManager?.getLayers?.() || []);
@@ -1162,9 +1198,9 @@ export default class IAMCCS_EasyFullNodeUI {
                 global: {
                     positive: String(prompt.positive || ""),
                     negative: String(prompt.negative || ""),
-                    strength: Number(prompt.strength ?? 1) || 1,
-                    guidance: Number(prompt.guidance ?? 1) || 1,
-                    cfg: Number(prompt.cfg ?? 1) || 1,
+                    strength: Number(prompt.strength || 1) || 1,
+                    guidance: Number(prompt.guidance || 1) || 1,
+                    cfg: Number(prompt.cfg || 1) || 1,
                     applyToAll: !!prompt.applyToAll,
                 },
             },
@@ -1636,7 +1672,7 @@ export default class IAMCCS_EasyFullNodeUI {
     }
 
     _editorOpenStorageKey() {
-        return `goya:editorOpen:${this.node?.id ?? 'unknown'}`;
+        return `goya:editorOpen:${this.node?.id || 'unknown'}`;
     }
 
     _clearEditorOpenState() {
@@ -1941,8 +1977,8 @@ export default class IAMCCS_EasyFullNodeUI {
             project_name: prior.project_name || "goyai_easy_project",
             operation: this._getEasyOperation(payload, backendPayload),
             workflow_mode: this._getEasyOperation(payload, backendPayload),
-            prompt: String(global.positive ?? payload.global_positive ?? backendPayload.positive ?? ""),
-            negative_prompt: String(global.negative ?? payload.global_negative ?? backendPayload.negative ?? ""),
+            prompt: String(global.positive || payload.global_positive || backendPayload.positive || ""),
+            negative_prompt: String(global.negative || payload.global_negative || backendPayload.negative || ""),
             source_image_b64: sourceImage.dataUrl || "",
             source_image_ref: sourceImage.ref || null,
             source_image_path: sourceImage.path || null,
@@ -2068,10 +2104,10 @@ export default class IAMCCS_EasyFullNodeUI {
 
     _getEasyOutpaintState() {
         const runner = this.workflowRunner || {};
-        const left = Math.max(0, Number(runner.fl2oLeft ?? 0) || 0);
-        const top = Math.max(0, Number(runner.fl2oTop ?? 0) || 0);
-        const right = Math.max(0, Number(runner.fl2oRight ?? 0) || 0);
-        const bottom = Math.max(0, Number(runner.fl2oBottom ?? 0) || 0);
+        const left = Math.max(0, Number(runner.fl2oLeft || 0) || 0);
+        const top = Math.max(0, Number(runner.fl2oTop || 0) || 0);
+        const right = Math.max(0, Number(runner.fl2oRight || 0) || 0);
+        const bottom = Math.max(0, Number(runner.fl2oBottom || 0) || 0);
         const enabled = left + top + right + bottom > 0;
         const width = Number(this.canvasWidth || this.canvasView?.canvas?.width || Constants.CANVAS_WIDTH);
         const height = Number(this.canvasHeight || this.canvasView?.canvas?.height || Constants.CANVAS_HEIGHT);
@@ -2082,9 +2118,9 @@ export default class IAMCCS_EasyFullNodeUI {
             right,
             bottom,
             fill: "black",
-            feathering: Math.max(0, Number(runner.fl2oFeathering ?? 0) || 0),
-            max_width: Math.max(0, Number(runner.fl2oMaxWidth ?? 0) || 0),
-            max_height: Math.max(0, Number(runner.fl2oMaxHeight ?? 0) || 0),
+            feathering: Math.max(0, Number(runner.fl2oFeathering || 0) || 0),
+            max_width: Math.max(0, Number(runner.fl2oMaxWidth || 0) || 0),
+            max_height: Math.max(0, Number(runner.fl2oMaxHeight || 0) || 0),
             source_is_prepared: enabled && !!this._easyOutpaintSourcePrepared,
             source_rect: {
                 x: left,
@@ -2166,8 +2202,8 @@ export default class IAMCCS_EasyFullNodeUI {
             opacity: layer.opacity,
             bitmap: null,
             mask: null,
-            metadata: layer.metadata ?? {},
-            prompt: { ...layer.prompt },
+            metadata: layer.metadata ? { ...layer.metadata } : {},
+            prompt: layer.prompt ? { ...layer.prompt } : {},
         }));
 
         // Determine current theme from DOM or persisted storage
@@ -2185,13 +2221,13 @@ export default class IAMCCS_EasyFullNodeUI {
             height: this.canvasHeight,
             active_layer: this.layerManager.getActiveLayerId(),
             layers,
-            global_positive: global.positive ?? "",
-            global_negative: global.negative ?? "",
-            global_strength: global.strength ?? 1,
-            global_guidance: global.guidance ?? 1,
-            global_cfg: global.cfg ?? 1,
-            seed: this.workflowRunner.seed ?? -1,
-            steps: this.workflowRunner.steps ?? 4,
+            global_positive: global.positive || "",
+            global_negative: global.negative || "",
+            global_strength: Number(global.strength || 1) || 1,
+            global_guidance: Number(global.guidance || 1) || 1,
+            global_cfg: Number(global.cfg || 1) || 1,
+            seed: Number.isFinite(Number(this.workflowRunner.seed)) ? Number(this.workflowRunner.seed) : -1,
+            steps: Number.isFinite(Number(this.workflowRunner.steps)) ? Number(this.workflowRunner.steps) : 4,
             scenario: workflowPayload.scenario || "auto",  // Use dispatcher scenario
             draw_only: this.drawOnly,
             pencil_mode: this.canvasView?.pencilModeEnabled || false,
@@ -2223,11 +2259,11 @@ export default class IAMCCS_EasyFullNodeUI {
         if (!this.node?.widgets) {
             return null;
         }
-        return this.node.widgets.find((widget) => widget && widget.name === name) ?? null;
+        return this.node.widgets.find((widget) => widget && widget.name === name) || null;
     }
 
     async _queuePrompt() {
-        const comfyApp = this.node?.graph?.comfyApp ?? window.app;
+        const comfyApp = this.node?.graph?.comfyApp || window.app;
         if (!comfyApp || typeof comfyApp.queuePrompt !== "function") {
             return;
         }

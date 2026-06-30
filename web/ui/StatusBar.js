@@ -28,7 +28,7 @@ export default class StatusBar {
     _bind() {
         this.eventBus.on("layers:changed", () => {
             this._update();
-            const count = this.layerManager?.getLayers?.()?.length ?? 0;
+            const count = this.layerManager?.getLayers?.()?.length || 0;
             const layer = this.layerManager?.getActiveLayer?.();
             this._pushTick(`Layers changed: ${count} layer${count === 1 ? "" : "s"}${layer?.name ? `, active "${layer.name}"` : ""}`);
         });

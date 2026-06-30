@@ -1,7 +1,7 @@
 console.log("[IAMCCS Easy] Easy standalone extension entry loaded", import.meta.url);
 import { app } from "/scripts/app.js";
 import { debugTrace } from "./utils/DebugTrace.js";
-import { GOYA_BUILD_INFO, getGoyaBuildLabel } from "./app/BuildInfo.js?v=20260630_EASY_OUTPAINT_ACCEPT02";
+import { GOYA_BUILD_INFO, getGoyaBuildLabel } from "./app/BuildInfo.js?v=20260630_EASY_IMMEDIATE_EDIT_RESULT02";
 
 let easyNodeUiPromise = null;
 
